@@ -105,14 +105,12 @@ export default function HomePage() {
 
         setGames(
           response.data.data.map(
-            (
-              g: Game, // PERBAIKAN: Menggunakan tipe Game, bukan any
-            ) =>
+            (g: Game) =>
               ({
                 ...g,
                 total_liked: g.total_liked || 0,
                 total_played: g.total_played || 0,
-                is_liked: false,
+                is_liked: g.is_liked || false,
               }) as Game,
           ),
         );
@@ -186,10 +184,6 @@ export default function HomePage() {
 
   const GameCard = ({ game }: { game: Game }) => {
     const handlePlayGame = () => {
-      if (!isAuthenticated) {
-        window.location.href = "/login";
-        return;
-      }
       window.location.href = `/quiz/play/${game.id}`;
     };
 
@@ -235,8 +229,8 @@ export default function HomePage() {
               </span>
             </div>
 
-            {isAuthenticated && (
-              <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
+              {isAuthenticated ? (
                 <div
                   className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={(e) => handleLike(e, game.id)}
@@ -248,12 +242,17 @@ export default function HomePage() {
                   />
                   <span>{game.total_liked}</span>
                 </div>
+              ) : (
                 <div className="flex items-center gap-1">
-                  <img src={iconPlay} alt="Plays" className="w-3.5 h-3.5" />
-                  <span>{game.total_played} plays</span>
+                  <img src={iconHeart} alt="Likes" className="w-3.5 h-3.5" />
+                  <span>{game.total_liked}</span>
                 </div>
+              )}
+              <div className="flex items-center gap-1">
+                <img src={iconPlay} alt="Plays" className="w-3.5 h-3.5" />
+                <span>{game.total_played} plays</span>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </Card>
@@ -292,140 +291,189 @@ export default function HomePage() {
           </Typography>
         </div>
 
-        {isAuthenticated && (
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-1">
-              <img
-                src={iconSearch}
-                alt=""
-                className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              />
-              <Input
-                placeholder="Search games..."
-                className="pl-10 bg-white"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-white">
-                    Latest <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setOrderByCreatedAt("desc");
-                      setOrderByLikeAmount(null);
-                      setOrderByPlayAmount(null);
-                    }}
-                  >
-                    Newest First
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setOrderByCreatedAt("asc");
-                      setOrderByLikeAmount(null);
-                      setOrderByPlayAmount(null);
-                    }}
-                  >
-                    Oldest First
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-white">
-                    Popular <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>Sort by Likes</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setOrderByLikeAmount("desc");
-                      setOrderByCreatedAt(null);
-                      setOrderByPlayAmount(null);
-                    }}
-                  >
-                    Most Liked
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setOrderByLikeAmount("asc");
-                      setOrderByCreatedAt(null);
-                      setOrderByPlayAmount(null);
-                    }}
-                  >
-                    Least Liked
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Sort by Plays</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setOrderByPlayAmount("desc");
-                      setOrderByCreatedAt(null);
-                      setOrderByLikeAmount(null);
-                    }}
-                  >
-                    Most Played
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setOrderByPlayAmount("asc");
-                      setOrderByCreatedAt(null);
-                      setOrderByLikeAmount(null);
-                    }}
-                  >
-                    Least Played
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="bg-white w-10 px-0"
-                  >
-                    <img src={iconVector} alt="Filter" className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Sort by Name</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => setOrderByName("asc")}>
-                    A to Z
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setOrderByName("desc")}>
-                    Z to A
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setOrderByName(null)}>
-                    Clear Name Sort
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => setGameTypeSlug(null)}>
-                    All Types
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {gameTemplates.map((template) => (
-                    <DropdownMenuItem
-                      key={template.id}
-                      onClick={() => setGameTypeSlug(template.slug)}
-                    >
-                      {template.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <img
+              src={iconSearch}
+              alt=""
+              className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              placeholder="Search games..."
+              className="pl-10 bg-white"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        )}
+
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={orderByCreatedAt ? "bg-sky-100" : "bg-white"}
+                >
+                  Latest <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setOrderByCreatedAt(
+                      orderByCreatedAt === "desc" ? null : "desc",
+                    );
+                    setOrderByLikeAmount(null);
+                    setOrderByPlayAmount(null);
+                  }}
+                  className={orderByCreatedAt === "desc" ? "bg-sky-100" : ""}
+                >
+                  Newest First
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setOrderByCreatedAt(
+                      orderByCreatedAt === "asc" ? null : "asc",
+                    );
+                    setOrderByLikeAmount(null);
+                    setOrderByPlayAmount(null);
+                  }}
+                  className={orderByCreatedAt === "asc" ? "bg-sky-100" : ""}
+                >
+                  Oldest First
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={
+                    orderByLikeAmount || orderByPlayAmount
+                      ? "bg-sky-100"
+                      : "bg-white"
+                  }
+                >
+                  Popular <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Sort by Likes</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setOrderByLikeAmount(
+                      orderByLikeAmount === "desc" ? null : "desc",
+                    );
+                    setOrderByCreatedAt(null);
+                    setOrderByPlayAmount(null);
+                  }}
+                  className={orderByLikeAmount === "desc" ? "bg-sky-100" : ""}
+                >
+                  Most Liked
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setOrderByLikeAmount(
+                      orderByLikeAmount === "asc" ? null : "asc",
+                    );
+                    setOrderByCreatedAt(null);
+                    setOrderByPlayAmount(null);
+                  }}
+                  className={orderByLikeAmount === "asc" ? "bg-sky-100" : ""}
+                >
+                  Least Liked
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Sort by Plays</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setOrderByPlayAmount(
+                      orderByPlayAmount === "desc" ? null : "desc",
+                    );
+                    setOrderByCreatedAt(null);
+                    setOrderByLikeAmount(null);
+                  }}
+                  className={orderByPlayAmount === "desc" ? "bg-sky-100" : ""}
+                >
+                  Most Played
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setOrderByPlayAmount(
+                      orderByPlayAmount === "asc" ? null : "asc",
+                    );
+                    setOrderByCreatedAt(null);
+                    setOrderByLikeAmount(null);
+                  }}
+                  className={orderByPlayAmount === "asc" ? "bg-sky-100" : ""}
+                >
+                  Least Played
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={`w-10 px-0 ${orderByName || gameTypeSlug ? "bg-sky-100" : "bg-white"}`}
+                >
+                  <img src={iconVector} alt="Filter" className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Sort by Name</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() =>
+                    setOrderByName(orderByName === "desc" ? null : "desc")
+                  }
+                  className={orderByName === "desc" ? "bg-sky-100" : ""}
+                >
+                  A to Z
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    setOrderByName(orderByName === "asc" ? null : "asc")
+                  }
+                  className={orderByName === "asc" ? "bg-sky-100" : ""}
+                >
+                  Z to A
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setOrderByName(null)}
+                  className={orderByName === null ? "bg-sky-100" : ""}
+                >
+                  Clear Name Sort
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => setGameTypeSlug(null)}
+                  className={gameTypeSlug === null ? "bg-sky-100" : ""}
+                >
+                  All Types
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {gameTemplates.map((template) => (
+                  <DropdownMenuItem
+                    key={template.id}
+                    onClick={() =>
+                      setGameTypeSlug(
+                        gameTypeSlug === template.slug ? null : template.slug,
+                      )
+                    }
+                    className={
+                      gameTypeSlug === template.slug ? "bg-sky-100" : ""
+                    }
+                  >
+                    {template.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {games.length > 0 ? (

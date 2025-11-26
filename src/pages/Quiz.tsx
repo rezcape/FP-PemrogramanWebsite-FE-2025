@@ -120,7 +120,16 @@ function Quiz() {
       });
 
       setResult(response.data.data);
-      await addPlayCount(id!);
+
+      // Only increment play count for authenticated users
+      const token = localStorage.getItem("auth-storage");
+      if (token) {
+        const authData = JSON.parse(token);
+        if (authData?.state?.token) {
+          await addPlayCount(id!);
+        }
+      }
+
       setFinished(true);
     } catch (err) {
       console.error(err);
@@ -203,7 +212,7 @@ function Quiz() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => navigate("/my-projects")}
+            onClick={() => navigate("/")}
           >
             Exit
           </Button>
@@ -220,7 +229,7 @@ function Quiz() {
             size="sm"
             variant="ghost"
             className="hidden md:flex"
-            onClick={() => navigate("/my-projects")}
+            onClick={() => navigate("/")}
           >
             <ArrowLeft /> Exit Game
           </Button>
@@ -228,7 +237,7 @@ function Quiz() {
             size="sm"
             variant="ghost"
             className="block md:hidden"
-            onClick={() => navigate("/my-projects")}
+            onClick={() => navigate("/")}
           >
             <ArrowLeft />
           </Button>
