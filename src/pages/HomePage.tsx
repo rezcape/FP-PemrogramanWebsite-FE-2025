@@ -101,7 +101,6 @@ export default function HomePage() {
         const url = queryString ? `/api/game?${queryString}` : "/api/game";
 
         const response = await api.get(url);
-        console.log("Fetched games data:", response.data);
 
         setGames(
           response.data.data.map(
@@ -184,7 +183,13 @@ export default function HomePage() {
 
   const GameCard = ({ game }: { game: Game }) => {
     const handlePlayGame = () => {
-      window.location.href = `/quiz/play/${game.id}`;
+      const isAirplaneGame = game.name.toLowerCase().includes('airplane');
+      
+      if (isAirplaneGame) {
+        window.location.href = '/game/play/airplane';
+      } else {
+        window.location.href = `/quiz/play/${game.id}`;
+      }
     };
 
     return (
@@ -229,7 +234,7 @@ export default function HomePage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex gap-3">
               {isAuthenticated ? (
                 <div
                   className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"

@@ -11,6 +11,7 @@ import EditQuiz from "./pages/EditQuiz";
 import Quiz from "./pages/Quiz";
 import AirplaneMathGame from "./pages/airplane-math";
 import ProtectedRoute from "./routes/ProtectedRoutes";
+import AirplaneGeneralGame from "./pages/airplane";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/create-projects" element={<CreateProject />} />
           <Route path="/create-quiz" element={<CreateQuiz />} />
           <Route path="/quiz/edit/:id" element={<EditQuiz />} />
+          <Route path="/game/play/airplane" element={<AirplaneGeneralGame />} />
         </Route>
       </Routes>
     </>
