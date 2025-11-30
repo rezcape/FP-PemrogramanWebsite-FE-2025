@@ -43,6 +43,7 @@ type Game = {
   total_played: number;
   creator_id: string;
   creator_name: string;
+  is_game_liked: boolean;
   is_liked?: boolean;
 };
 
@@ -110,7 +111,7 @@ export default function HomePage() {
                 ...g,
                 total_liked: g.total_liked || 0,
                 total_played: g.total_played || 0,
-                is_liked: g.is_liked || false,
+                is_liked: g.is_game_liked || false,
               }) as Game,
           ),
         );
@@ -213,7 +214,7 @@ export default function HomePage() {
               {game.name}
             </Typography>
             <Badge variant="secondary" className="shrink-0">
-              Quiz
+              {game.game_template}
             </Badge>
           </div>
 
@@ -232,7 +233,7 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
                 <div
-                  className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-1 cursor-pointer hover:scale-105 transition-transform ease-in-out duration-150"
                   onClick={(e) => handleLike(e, game.id)}
                 >
                   <img
