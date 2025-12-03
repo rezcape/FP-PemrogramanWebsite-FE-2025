@@ -8,7 +8,10 @@ export interface Entity {
   height: number;
 }
 
-export interface Player extends Entity {}
+export interface Player extends Entity {
+  vy: number; // Vertical Velocity
+  targetY: number; // For smooth lerping
+}
 
 export interface Cloud extends Entity {
   id: string;
@@ -23,7 +26,7 @@ export interface GeneralQuestion {
   wrongAnswers: string[];
 }
 
-export interface GameDataResponse {
-  questions: GeneralQuestion[];
-  gameSettings?: { speed: string };
+export interface AudioState {
+  bgm: boolean;
+  sfx: boolean;
 }
