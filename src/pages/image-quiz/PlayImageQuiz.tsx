@@ -358,7 +358,12 @@ function PlayImageQuiz() {
       setResult(res);
       setCurrentScore(res.total_score);
 
-      await updateImageQuizPlayCount(id!);
+      try {
+        await updateImageQuizPlayCount(id!);
+      } catch (countErr) {
+        console.error("Failed to update play count:", countErr);
+        // Don't block the result screen for this
+      }
     } catch (err) {
       console.error(err);
       setError("Failed to submit results.");

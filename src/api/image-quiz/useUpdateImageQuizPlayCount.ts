@@ -3,9 +3,7 @@ import toast from "react-hot-toast";
 
 export const updateImageQuizPlayCount = async (game_id: string) => {
   try {
-    const res = await api.post(
-      `/api/game/game-type/image-quiz/${game_id}/play-count`,
-    );
+    const res = await api.post("/api/game/play-count", { game_id });
     return res.data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
