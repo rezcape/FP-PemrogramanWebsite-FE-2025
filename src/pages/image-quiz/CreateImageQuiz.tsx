@@ -119,6 +119,12 @@ function CreateImageQuiz() {
     const newQuestions = [...questions];
     newQuestions[qIndex].questionText = value;
     setQuestions(newQuestions);
+
+    if (formErrors[`questions.${qIndex}.questionText`]) {
+      const newErrs = { ...formErrors };
+      delete newErrs[`questions.${qIndex}.questionText`];
+      setFormErrors(newErrs);
+    }
   };
 
   const handleSubmit = async (publish = false) => {
@@ -354,7 +360,8 @@ function CreateImageQuiz() {
 
                     <div>
                       <TextareaField
-                        label="Hint / Instruction (Optional)"
+                        required
+                        label="Category"
                         placeholder="e.g. Who is this person?"
                         rows={2}
                         value={q.questionText}
@@ -362,6 +369,11 @@ function CreateImageQuiz() {
                           handleQuestionTextChange(qIndex, e.target.value)
                         }
                       />
+                      {formErrors[`questions.${qIndex}.questionText`] && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {formErrors[`questions.${qIndex}.questionText`]}
+                        </p>
+                      )}
                     </div>
                   </div>
 

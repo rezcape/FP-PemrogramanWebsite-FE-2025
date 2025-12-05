@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { Input } from "@/components/ui/input";
-// We reuse types but will implement custom validation logic for Edit
 import { TextareaField } from "@/components/ui/textarea-field";
 import { Label } from "@/components/ui/label";
 import { FormField } from "@/components/ui/form-field";
@@ -43,19 +42,6 @@ interface Question {
   correct_answer_id: string;
 }
 
-/** Payload types for backend */
-interface QuestionPayload {
-  question_id: string;
-  question_text: string;
-  answers: {
-    answer_id: string;
-    answer_text: string;
-    is_correct: boolean;
-  }[];
-  correct_answer_id: string;
-  question_image_array_index?: number | string;
-}
-
 function EditImageQuiz() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -86,7 +72,6 @@ function EditImageQuiz() {
     isPublishImmediately: false,
     isQuestionRandomized: false,
     isAnswerRandomized: false,
-    // scorePerQuestion dihapus
   });
 
   const {
@@ -121,26 +106,28 @@ function EditImageQuiz() {
 
     const mappedQuestions: Question[] = (
       fetchedQuizData.game_json?.questions || []
-    ).map((q) => ({
-      question_id: q.question_id || uuidv4(), // Ensure UUID is present
-      questionText: q.question_text || "",
-      questionImages: q.question_image_url
-        ? q.question_image_url.startsWith("http")
-          ? q.question_image_url
-          : `${import.meta.env.VITE_API_URL}/${q.question_image_url}`
-        : null,
-      correct_answer_id: q.correct_answer_id || "",
-      answers: (q.answers || []).map((a) => ({
-        answer_id: a.answer_id || uuidv4(),
-        text: a.answer_text ?? "",
-        isCorrect: a.answer_id === q.correct_answer_id, // Set isCorrect based on correct_answer_id
-      })),
-    }));
+    ).map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (q: any) => ({
+        question_id: q.question_id || uuidv4(),
+        questionText: q.questionText || "",
+        questionImages: q.questionImages, // Already formatted by hook
+        correct_answer_id: q.correct_answer_id || "",
+        answers: (q.answers || []).map(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (a: any) => ({
+            answer_id: a.answer_id || uuidv4(),
+            text: a.text ?? "",
+            isCorrect: a.isCorrect,
+          }),
+        ),
+      }),
+    );
 
     const normalized = mappedQuestions.map((q) => {
       const arr = q.answers.slice(0, 3);
       while (arr.length < 3)
-        arr.push({ answer_id: uuidv4(), text: "", isCorrect: false }); // Add answer_id for new empty answers
+        arr.push({ answer_id: uuidv4(), text: "", isCorrect: false });
       return { ...q, answers: arr };
     });
 
@@ -238,6 +225,7 @@ function EditImageQuiz() {
 
   const handleQuestionTextChange = (qIndex: number, value: string) => {
     updateQuestion(qIndex, { questionText: value });
+    clearFormError(`questions.${qIndex}.questionText`);
   };
 
   const handleThumbnailChange = (file: File | null) => {
@@ -277,6 +265,11 @@ function EditImageQuiz() {
         hasError = true;
       }
 
+      if (!q.questionText.trim()) {
+        newErrors[`questions.${i}.questionText`] = "Category is required";
+        hasError = true;
+      }
+
       if (!q.correct_answer_id) {
         newErrors[`questions.${i}.correct_answer_id`] =
           "One correct answer must be selected";
@@ -297,75 +290,6 @@ function EditImageQuiz() {
       return toast.error("Please fix the highlighted errors");
     }
 
-    // 3. Prepare Payload (FormData)
-    const formData = new FormData();
-    formData.append("name", title);
-    if (description) formData.append("description", description);
-
-    if (thumbnail instanceof File) {
-      formData.append("thumbnail_image", thumbnail);
-    }
-
-    formData.append(
-      "is_publish",
-      String(publish || settings.isPublishImmediately),
-    );
-    formData.append(
-      "is_question_randomized",
-      String(settings.isQuestionRandomized),
-    );
-    formData.append(
-      "is_answer_randomized",
-      String(settings.isAnswerRandomized),
-    );
-    // score_per_question dihapus karena diatur backend
-
-    const filesToUpload: File[] = [];
-    const questionImageFileIndex: (number | string | undefined)[] = new Array(
-      questions.length,
-    );
-
-    questions.forEach((q, qi) => {
-      if (q.questionImages instanceof File) {
-        questionImageFileIndex[qi] = filesToUpload.length;
-        filesToUpload.push(q.questionImages);
-      } else if (typeof q.questionImages === "string") {
-        const base = import.meta.env.VITE_API_URL ?? "";
-        let relative = q.questionImages;
-        if (base && relative.startsWith(base)) {
-          relative = relative.replace(base + "/", "");
-          if (relative.startsWith("/")) relative = relative.substring(1);
-        }
-        questionImageFileIndex[qi] = relative;
-      } else {
-        questionImageFileIndex[qi] = undefined;
-      }
-    });
-
-    filesToUpload.forEach((f) => {
-      formData.append("files_to_upload[]", f);
-    });
-
-    const questionsPayload: QuestionPayload[] = questions.map((q, qi) => {
-      const payload: QuestionPayload = {
-        question_id: q.question_id,
-        question_text: q.questionText,
-        answers: q.answers.map((a) => ({
-          answer_id: a.answer_id,
-          answer_text: a.text,
-          is_correct: a.isCorrect,
-        })),
-        correct_answer_id: q.correct_answer_id,
-      };
-      const idx = questionImageFileIndex[qi];
-      if (idx !== undefined) {
-        payload.question_image_array_index = idx as number | string;
-      }
-      return payload;
-    });
-
-    formData.append("questions", JSON.stringify(questionsPayload));
-
     try {
       setLoading(true);
       // Panggil hook updateImageQuiz
@@ -373,7 +297,7 @@ function EditImageQuiz() {
         game_id: id!,
         title,
         description,
-        thumbnail,
+        thumbnail: thumbnail ?? undefined,
         questions: questions.map((q) => ({
           question_id: q.question_id,
           questionText: q.questionText,
@@ -526,7 +450,8 @@ function EditImageQuiz() {
                     </div>
 
                     <TextareaField
-                      label="Hint / Instruction (Optional)"
+                      required
+                      label="Category"
                       placeholder="e.g. Identify the hidden object"
                       rows={2}
                       value={q.questionText}
@@ -534,6 +459,11 @@ function EditImageQuiz() {
                         handleQuestionTextChange(qIndex, e.target.value)
                       }
                     />
+                    {formErrors[`questions.${qIndex}.questionText`] && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {formErrors[`questions.${qIndex}.questionText`]}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-4">

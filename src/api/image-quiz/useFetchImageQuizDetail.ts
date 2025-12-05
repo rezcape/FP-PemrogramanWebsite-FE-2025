@@ -28,13 +28,7 @@ export interface ImageQuizDetail {
   game_json?: {
     is_question_randomized: boolean;
     is_answer_randomized: boolean;
-    questions: {
-      question_id: string;
-      question_text: string;
-      question_image_url: string;
-      correct_answer_id: string;
-      answers: { answer_id: string; answer_text: string }[];
-    }[];
+    questions: Question[];
   };
 }
 
@@ -58,8 +52,9 @@ export const useFetchImageQuizDetail = (game_id: string | undefined) => {
         const apiData = response.data.data;
 
         // Map API response to frontend Question interface
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const mappedQuestions = (apiData.game_json?.questions || []).map(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (q: any) => ({
             question_id: q.question_id || uuidv4(),
             questionText: q.question_text || "",

@@ -8,7 +8,7 @@ export const answerSchema = z.object({
 
 export const imageQuestionSchema = z.object({
   question_id: z.string().uuid(),
-  questionText: z.string().optional(), // Boleh kosong jika hanya gambar
+  questionText: z.string().min(1, "Category is required"),
   questionImages: z.instanceof(File, {
     message: "Image is required for Image Quiz",
   }),

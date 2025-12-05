@@ -46,7 +46,6 @@ interface ImageQuizGameData {
   name: string;
   description: string;
   thumbnail_image: string | null;
-  is_published: boolean;
   questions: Question[];
   tile_config: ImageQuizPlayConfig;
 }
@@ -114,8 +113,8 @@ function PlayImageQuiz() {
     }[];
   } | null>(null);
 
-  const revealTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const revealTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const gameTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // const timeTrackingRef = useRef<NodeJS.Timeout | null>(null);
   const roundStartTimeRef = useRef<number>(0);
 
@@ -166,7 +165,7 @@ function PlayImageQuiz() {
 
   // Game Timer Countdown Logic
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval>;
     if (isPlaying && !isPaused && timeLeft > 0) {
       timer = setInterval(() => {
         setTimeLeft((prev) => Math.max(0, prev - 1));
