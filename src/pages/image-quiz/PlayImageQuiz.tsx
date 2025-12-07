@@ -285,6 +285,7 @@ function PlayImageQuiz() {
   };
 
   const calculatePointsFromTimeSpent = (timeSpentSeconds: number) => {
+    if (timeSpentSeconds <= 5) return 5;
     if (timeSpentSeconds <= 10) return 4;
     if (timeSpentSeconds <= 20) return 3;
     if (timeSpentSeconds <= 30) return 2;
@@ -587,7 +588,7 @@ function PlayImageQuiz() {
             {Array.from({ length: TOTAL_BLOCKS }, (_, i) => (
               <div
                 key={i}
-                className={`bg-slate-800 border border-slate-900/50 transition-opacity duration-500 ${
+                className={`bg-slate-800 border border-slate-900/50 ${isPlaying ? "transition-opacity duration-500" : ""} ${
                   hiddenBlocks.includes(i) ? "opacity-100" : "opacity-0"
                 }`}
               />
@@ -622,15 +623,19 @@ function PlayImageQuiz() {
         </div>
 
         {/* Submit Answer Button (Bottom) */}
-        <div className="mt-8 flex gap-4 z-10 h-16">
+        <div className="mt-4 flex gap-4 z-10 h-24 items-center justify-center">
           {isPlaying && (
-            <Button
-              size="lg"
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xl px-12 py-6 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all border-none"
+            <button
+              className="relative w-24 h-24 rounded-full bg-red-600 border-4 border-red-800 shadow-[0_8px_0_#7f1d1d,0_15px_20px_rgba(220,38,38,0.5)] active:shadow-none active:translate-y-2 transition-all duration-100 ease-in-out flex items-center justify-center animate-pulse hover:animate-none group"
               onClick={handleOpenAnswerModal}
+              aria-label="Submit Answer"
             >
-              SUBMIT ANSWER
-            </Button>
+              <span className="font-black text-white/90 text-xl tracking-wider drop-shadow-md z-10">
+                BUZZ
+              </span>
+              {/* Shine/Reflection */}
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-8 bg-gradient-to-b from-white/30 to-transparent rounded-full blur-[0.5px]" />
+            </button>
           )}
         </div>
       </div>
