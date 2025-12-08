@@ -38,7 +38,8 @@ type Game = {
   name: string;
   description: string;
   thumbnail_image: string | null;
-  game_template: string;
+  game_template_name: string;
+  game_template_slug: string;
   total_liked: number;
   total_played: number;
   creator_id: string;
@@ -185,7 +186,7 @@ export default function HomePage() {
 
   const GameCard = ({ game }: { game: Game }) => {
     const handlePlayGame = () => {
-      window.location.href = `/quiz/play/${game.id}`;
+      window.location.href = `/${game.game_template_slug}/play/${game.id}`;
     };
 
     return (
@@ -214,7 +215,7 @@ export default function HomePage() {
               {game.name}
             </Typography>
             <Badge variant="secondary" className="shrink-0">
-              {game.game_template}
+              {game.game_template_name}
             </Badge>
           </div>
 
