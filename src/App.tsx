@@ -15,6 +15,10 @@ import ProtectedRoute from "./routes/ProtectedRoutes";
 import PairOrNoPairGame from "./pages/pair-or-no-pair";
 import CreatePairOrNoPair from "./pages/pair-or-no-pair/create";
 
+// 📌 TAMBAHAN 2: Import Komponen Game Whack-a-Mole
+import WhackAMoleGame from "./pages/whack-a-mole";
+import CreateWhackAMole from "./pages/whack-a-mole/create";
+
 function App() {
   return (
     <>
@@ -28,6 +32,7 @@ function App() {
           path="/pair-or-no-pair/play/:gameId"
           element={<PairOrNoPairGame />}
         />
+        <Route path="/whack-a-mole/play/:gameId" element={<WhackAMoleGame />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
@@ -38,6 +43,7 @@ function App() {
             path="/create-pair-or-no-pair"
             element={<CreatePairOrNoPair />}
           />
+          <Route path="/create-whack-a-mole" element={<CreateWhackAMole />} />
           <Route path="/quiz/edit/:id" element={<EditQuiz />} />
         </Route>
       </Routes>
