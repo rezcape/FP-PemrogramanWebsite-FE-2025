@@ -64,6 +64,13 @@ export default function FlipTiles() {
 
   // Ref for spinner interval cleanup
   const spinnerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const scheduleTimeout = (cb: () => void, delay: number) => {
+    const t = setTimeout(cb, delay);
+    timeoutsRef.current.push(t);
+    return t;
+  };
 
   // Cleanup spinner on unmount
   useEffect(() => {
@@ -71,6 +78,7 @@ export default function FlipTiles() {
       if (spinnerIntervalRef.current) {
         clearInterval(spinnerIntervalRef.current);
       }
+      timeoutsRef.current.forEach(clearTimeout);
     };
   }, []);
 
@@ -169,12 +177,42 @@ export default function FlipTiles() {
   // Auto-hide intro sequence
   useEffect(() => {
     if (!loading && gameData) {
-      const timer = setTimeout(() => {
+      const timer = scheduleTimeout(() => {
         setShowIntro(false);
       }, 3500); // 3.5s total intro duration
       return () => clearTimeout(timer);
     }
   }, [loading, gameData]);
+
+  // Inject intro keyframes once while intro is visible
+  useEffect(() => {
+    if (!showIntro) return;
+    const existing = document.getElementById("intro-styles");
+    if (existing) return;
+    const styleSheet = document.createElement("style");
+    styleSheet.id = "intro-styles";
+    styleSheet.innerText = `
+      @keyframes spin-3d-enter {
+        0% { transform: scale(0) rotateY(-90deg); opacity: 0; }
+        100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+      }
+      .letter-3d {
+        transform-style: preserve-3d;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .letter-3d:hover {
+        transform: scale(1.1) rotateY(180deg) !important;
+      }
+      .backface-hidden {
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
+      }
+    `;
+    document.head.appendChild(styleSheet);
+    return () => {
+      styleSheet.remove();
+    };
+  }, [showIntro]);
 
   const [tileHeight, setTileHeight] = useState(100);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -225,7 +263,7 @@ export default function FlipTiles() {
       }),
     );
     // clear the one-shot unflip flag
-    setTimeout(() => {
+    scheduleTimeout(() => {
       setTiles((prev) =>
         prev.map((t) => (t.id === tileId ? { ...t, justUnflipped: false } : t)),
       );
@@ -237,7 +275,7 @@ export default function FlipTiles() {
     setTiles((prev) =>
       prev.map((t) => (t.id === tileId ? { ...t, justRemoved: true } : t)),
     );
-    setTimeout(() => {
+    scheduleTimeout(() => {
       setTiles((prev) =>
         prev.map((t) =>
           t.id === tileId ? { ...t, removed: true, justRemoved: false } : t,
@@ -255,7 +293,7 @@ export default function FlipTiles() {
           : { ...t, flipped: false },
       ),
     );
-    setTimeout(() => {
+    scheduleTimeout(() => {
       setTiles((prev) => prev.map((t) => ({ ...t, justRestored: false })));
     }, 420);
     setSpinnerTarget(null);
@@ -280,7 +318,7 @@ export default function FlipTiles() {
     setTiles((prev) =>
       prev.map((t) => ({ ...t, flipped: false, justUnflipped: t.flipped })),
     );
-    setTimeout(() => {
+    scheduleTimeout(() => {
       setTiles((prev) => prev.map((t) => ({ ...t, justUnflipped: false })));
     }, 400);
   };
@@ -399,30 +437,6 @@ export default function FlipTiles() {
 
   // --- PHASE 1: INTRO SCREEN (NEW 3D TEXTURE DESIGN) ---
   if (showIntro) {
-    // Inject Custom 3D Keyframes
-    const styleSheet = document.createElement("style");
-    styleSheet.innerText = `
-      @keyframes spin-3d-enter {
-        0% { transform: scale(0) rotateY(-90deg); opacity: 0; }
-        100% { transform: scale(1) rotateY(0deg); opacity: 1; }
-      }
-      .letter-3d {
-        transform-style: preserve-3d;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
-      .letter-3d:hover {
-        transform: scale(1.1) rotateY(180deg) !important;
-      }
-      .backface-hidden {
-        backface-visibility: hidden !important;
-        -webkit-backface-visibility: hidden !important;
-      }
-    `;
-    if (!document.getElementById("intro-styles")) {
-      styleSheet.id = "intro-styles";
-      document.head.appendChild(styleSheet);
-    }
-
     return (
       <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center overflow-hidden perspective-[1200px]">
         {/* Animated Background Grid Pattern */}
@@ -749,7 +763,7 @@ export default function FlipTiles() {
           </div>
         </div>
 
-        {tiles.every((t) => t.removed) && (
+        {tiles.length > 0 && tiles.every((t) => t.removed) && (
           <GameCompleteOverlay onRestart={restoreAll} />
         )}
       </div>
@@ -759,7 +773,7 @@ export default function FlipTiles() {
           className={`fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-slate-900/60 ${zoomLeaving ? "pointer-events-none" : ""}`}
           onClick={() => {
             setZoomLeaving(true);
-            setTimeout(() => {
+            scheduleTimeout(() => {
               setZoomedTile(null);
               setZoomFromRect(null);
               setZoomLeaving(false);
@@ -846,7 +860,7 @@ export default function FlipTiles() {
               className="absolute -top-12 right-0 text-white hover:bg-white/10"
               onClick={() => {
                 setZoomLeaving(true);
-                setTimeout(() => {
+                scheduleTimeout(() => {
                   setZoomedTile(null);
                   setZoomFromRect(null);
                   setZoomLeaving(false);
