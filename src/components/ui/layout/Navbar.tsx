@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { User as UserIcon } from "lucide-react";
 import logo from "../../../assets/images/logo.svg";
 import { Compass } from "lucide-react";
@@ -39,6 +39,7 @@ export default function Navbar() {
 
         {isAuthenticated ? (
           <>
+            {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-2">
               <Button variant={isExplorePage ? "secondary" : "ghost"} asChild>
                 <a href="/" className="flex items-center gap-2">
@@ -57,7 +58,15 @@ export default function Navbar() {
                 </a>
               </Button>
             </div>
-            <ProfileDropdown user={user} />
+
+            <div className="hidden md:block">
+              <ProfileDropdown user={user} />
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="md:hidden">
+              <MobileMenu user={user} />
+            </div>
           </>
         ) : (
           <div className="flex items-center gap-2">
@@ -118,6 +127,73 @@ function ProfileDropdown({ user }: { user: AuthUser | null }) {
           <a href="/my-projects" className="flex items-center">
             <FolderKanban className="w-4 h-4 mr-2" />
             My Projects
+          </a>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem
+          className="cursor-pointer py-2.5 text-red-600 focus:text-red-600"
+          onClick={logout}
+        >
+          <LogOut className="w-4 h-4 mr-2 text-red-500" />
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function MobileMenu({ user }: { user: AuthUser | null }) {
+  const logout = useAuthStore((state) => state.logout);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Menu className="h-6 w-6" />
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-64">
+        <div className="flex flex-col py-2 px-2 border-b">
+          <div className="flex items-center gap-3 mb-2">
+            <Avatar className="w-8 h-8">
+              <AvatarImage
+                src={
+                  user?.profile_picture
+                    ? `${import.meta.env.VITE_API_URL}/${user.profile_picture}`
+                    : undefined
+                }
+                alt="User Avatar"
+              />
+              <AvatarFallback>
+                {user?.username?.charAt(0)?.toUpperCase() ?? "U"}
+              </AvatarFallback>
+            </Avatar>
+            <p className="font-semibold text-sm">{user?.username}</p>
+          </div>
+          <p className="text-xs text-muted-foreground">{user?.email}</p>
+        </div>
+
+        <DropdownMenuItem asChild className="cursor-pointer py-2.5">
+          <a href="/" className="flex items-center">
+            <Compass className="w-4 h-4 mr-2" />
+            Explore
+          </a>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild className="cursor-pointer py-2.5">
+          <a href="/my-projects" className="flex items-center">
+            <FolderKanban className="w-4 h-4 mr-2" />
+            My Projects
+          </a>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild className="cursor-pointer py-2.5">
+          <a href="/profile" className="flex items-center">
+            <UserIcon className="w-4 h-4 mr-2" />
+            Profile
           </a>
         </DropdownMenuItem>
 
