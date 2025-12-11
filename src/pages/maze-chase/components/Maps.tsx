@@ -573,7 +573,9 @@ const Maps = ({
       <canvas
         ref={canvasRef}
         className="border border-gray-500 max-w-full h-auto"
-        style={{ imageRendering: "pixelated" as unknown }}
+        style={{
+          imageRendering: "pixelated" as React.CSSProperties["imageRendering"],
+        }}
       />
     </div>
   );
