@@ -6,7 +6,7 @@ import PauseDialog from "./components/PauseDialog";
 import { useGetMazeChaseGame } from "@/api/maze-chase/useGetMazeChaseGame";
 import heart from "./assets/heart.png";
 import forrest from "./assets/maze/bg_maze.jpg";
-import start from "./assets/start.png";
+import startBg from "@/assets/maze-chase/Home_Background_assets.png";
 
 type MoveDir = "up" | "down" | "left" | "right" | null;
 
@@ -128,7 +128,7 @@ const Game = () => {
         <div
           className="fixed top-0 left-0 w-screen h-screen bg-cover bg-center zoom-center"
           style={{
-            backgroundImage: `url(${start})`,
+            backgroundImage: `url(${startBg})`,
           }}
         ></div>
       )}

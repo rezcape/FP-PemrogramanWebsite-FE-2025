@@ -105,6 +105,8 @@ function CreateMazeChase() {
     const newQuestions = [...questions];
     newQuestions[qIndex].answers[aIndex].text = value;
     setQuestions(newQuestions);
+    // Real-time validation saat answer berubah
+    validateAnswers(qIndex);
   };
 
   const handleCorrectAnswer = (qIndex: number, aIndex: number) => {
@@ -114,12 +116,16 @@ function CreateMazeChase() {
       isCorrect: i === aIndex,
     }));
     setQuestions(newQuestions);
+    // Real-time validation saat correct answer dipilih
+    validateAnswers(qIndex);
   };
 
   const handleQuestionTextChange = (qIndex: number, value: string) => {
     const newQuestions = [...questions];
     newQuestions[qIndex].questionText = value;
     setQuestions(newQuestions);
+    // Real-time validation saat question text berubah
+    validateQuestionText(qIndex, value);
   };
 
   // Validation helper function
@@ -182,6 +188,88 @@ function CreateMazeChase() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Real-time validation untuk title
+  const validateTitle = (value: string) => {
+    const newErrors = { ...formErrors };
+    if (!value.trim()) {
+      newErrors["title"] = "Game title is required";
+    } else {
+      delete newErrors["title"];
+    }
+    setFormErrors(newErrors);
+  };
+
+  // Real-time validation untuk description
+  const validateDescription = (value: string) => {
+    const newErrors = { ...formErrors };
+    if (!value.trim()) {
+      newErrors["description"] = "Description is required";
+    } else {
+      delete newErrors["description"];
+    }
+    setFormErrors(newErrors);
+  };
+
+  // Real-time validation untuk mapId
+  const validateMapId = (value: string) => {
+    const newErrors = { ...formErrors };
+    if (!value) {
+      newErrors["mapId"] = "Map selection is required";
+    } else {
+      delete newErrors["mapId"];
+    }
+    setFormErrors(newErrors);
+  };
+
+  // Real-time validation untuk thumbnail
+  const validateThumbnail = (file: File | null) => {
+    const newErrors = { ...formErrors };
+    if (!file) {
+      newErrors["thumbnail"] = "Thumbnail image is required";
+    } else {
+      delete newErrors["thumbnail"];
+    }
+    setFormErrors(newErrors);
+  };
+
+  // Real-time validation untuk question text
+  const validateQuestionText = (qIndex: number, value: string) => {
+    const newErrors = { ...formErrors };
+    if (!value.trim()) {
+      newErrors[`questions.${qIndex}.questionText`] =
+        "Question text is required";
+    } else {
+      delete newErrors[`questions.${qIndex}.questionText`];
+    }
+    setFormErrors(newErrors);
+  };
+
+  // Real-time validation untuk answers
+  const validateAnswers = (qIndex: number) => {
+    const newErrors = { ...formErrors };
+    const q = questions[qIndex];
+    const hasAtLeastTwoAnswers =
+      q.answers.filter((a) => a.text.trim()).length >= 2;
+
+    if (!hasAtLeastTwoAnswers) {
+      newErrors[`questions.${qIndex}.answers`] =
+        "Minimum 2 answer options required";
+    } else {
+      delete newErrors[`questions.${qIndex}.answers`];
+    }
+
+    // Check if at least one answer is correct
+    const hasCorrectAnswer = q.answers.some((a) => a.isCorrect);
+    if (!hasCorrectAnswer) {
+      newErrors[`questions.${qIndex}.correct`] =
+        "Must mark one answer as correct";
+    } else {
+      delete newErrors[`questions.${qIndex}.correct`];
+    }
+
+    setFormErrors(newErrors);
+  };
+
   const handleSaveDraft = () => {
     // Validate before saving draft
     if (!validateAllQuestions()) {
@@ -212,10 +300,21 @@ function CreateMazeChase() {
   const handleSubmit = async () => {
     // Validate all questions first
     if (!validateAllQuestions()) {
-      const errorCount = Object.keys(formErrors).length;
-      toast.error(
-        `Please fix ${errorCount} validation error(s) before creating the maze`,
-      );
+      const errors = Object.keys(formErrors);
+      const errorMessages = errors.map((key) => {
+        if (key === "title") return "Game title";
+        if (key === "description") return "Description";
+        if (key === "mapId") return "Maze map";
+        if (key === "thumbnail") return "Thumbnail image";
+        if (key.includes("questionText")) return "Question text";
+        if (key.includes("answers")) return "Answer options";
+        if (key.includes("correct")) return "Correct answer selection";
+        if (key.includes("countdownMinutes")) return "Countdown timer";
+        return key;
+      });
+      const uniqueMessages = [...new Set(errorMessages)];
+      const fieldsList = uniqueMessages.join(", ");
+      toast.error(`Please fill in required fields: ${fieldsList}`);
       return;
     }
 
@@ -262,6 +361,7 @@ function CreateMazeChase() {
         scorePerQuestion: 10,
         isQuestionRandomized: parseResult.data.settings.isQuestionRandomized,
         isAnswerRandomized: parseResult.data.settings.isAnswerRandomized,
+        isPublishImmediately: true,
       };
 
       await createMazeChaseGame(apiPayload);
@@ -351,7 +451,10 @@ function CreateMazeChase() {
                     placeholder="Enter the name of your mysterious maze..."
                     className="bg-black/70 border border-gray-700/50 text-gray-300 rounded-xl px-4 py-4 placeholder:text-gray-600 transition-all focus:border-[#c9a961] focus:ring-0 text-sm sm:text-base"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      validateTitle(e.target.value);
+                    }}
                   />
                   {formErrors["title"] && (
                     <p className="text-red-400 text-sm flex items-center gap-1">
@@ -369,7 +472,10 @@ function CreateMazeChase() {
                     className="w-full bg-black/70 border border-gray-700/50 text-gray-300 rounded-xl px-4 py-4 placeholder:text-gray-600 focus:border-[#c9a961]/50 transition-all resize-none text-sm sm:text-base placeholder:text-sm sm:placeholder:text-base"
                     rows={4}
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      validateDescription(e.target.value);
+                    }}
                   />
                   {formErrors["description"] && (
                     <p className="text-red-400 text-sm flex items-center gap-1">
@@ -385,7 +491,9 @@ function CreateMazeChase() {
                   <div className="space-y-3">
                     <button
                       type="button"
-                      onClick={() => setShowMapDropdown(!showMapDropdown)}
+                      onClick={() => {
+                        setShowMapDropdown(!showMapDropdown);
+                      }}
                       className="w-full flex items-center justify-between px-4 py-4 bg-black/70 border border-gray-700/50 rounded-xl hover:border-[#c9a961]/50 transition-all text-gray-300"
                     >
                       <span className="text-sm sm:text-base">
@@ -414,6 +522,7 @@ function CreateMazeChase() {
                               type="button"
                               onClick={() => {
                                 setMapId(map.id);
+                                validateMapId(map.id);
                                 setShowMapDropdown(false);
                               }}
                               className={`group overflow-hidden rounded-xl border-2 transition-all duration-300 transform hover:scale-105 active:scale-105 focus:scale-105 ${
@@ -461,7 +570,10 @@ function CreateMazeChase() {
                     required
                     allowedTypes={["image/png", "image/jpeg"]}
                     maxSize={2 * 1024 * 1024}
-                    onChange={(file) => setThumbnail(file)}
+                    onChange={(file) => {
+                      setThumbnail(file);
+                      validateThumbnail(file);
+                    }}
                   />
                   {formErrors["thumbnail"] && (
                     <p className="text-red-400 text-sm flex items-center gap-1">
@@ -739,6 +851,14 @@ function CreateMazeChase() {
                         ...prev,
                         countdownMinutes: val,
                       }));
+                      const newErrors = { ...formErrors };
+                      delete newErrors["settings.countdownMinutes"];
+                      setFormErrors(newErrors);
+                    } else if (val < 1 || val > 60) {
+                      const newErrors = { ...formErrors };
+                      newErrors["settings.countdownMinutes"] =
+                        "Countdown must be between 1-60 minutes";
+                      setFormErrors(newErrors);
                     }
                   }}
                 />
