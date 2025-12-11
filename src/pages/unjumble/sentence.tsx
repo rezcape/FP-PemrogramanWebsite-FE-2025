@@ -1,19 +1,12 @@
 import UnjumbleWord from "./unjumbleWord";
 
 // --- Tipe Data ---
-// Interface untuk kata-kata yang akan ditampilkan di area kalimat.
 interface SentenceAreaProps {
-  /** Array kata-kata yang sudah dipindahkan oleh pemain ke area kalimat. */
   words: { id: number; text: string }[];
 
-  /** Handler yang dipanggil saat kata di area kalimat diklik (untuk mengembalikannya). */
   onWordClick: (id: number) => void;
 }
 
-/**
- * @description Komponen yang merepresentasikan area tempat pemain menyusun kalimat.
- * Menggunakan export default untuk kompatibilitas impor di GameUnjumblePage.
- */
 export default function SentenceArea({
   words,
   onWordClick,
@@ -38,7 +31,6 @@ export default function SentenceArea({
             key={word.id}
             word={word.text}
             onClick={() => onWordClick(word.id)}
-            // Set isActive ke true untuk memberikan gaya visual "sudah dipilih/tersusun"
             isActive={true}
           />
         ))
