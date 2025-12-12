@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import Dropzone from "@/components/ui/dropzone";
 import { Typography } from "@/components/ui/typography";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Zap, Plus, Trash2 } from "lucide-react";
 import { useFetchImageQuizDetail } from "@/api/image-quiz/useFetchImageQuizDetail";
 import { updateImageQuiz } from "@/api/image-quiz/useUpdateImageQuiz";
 import {
