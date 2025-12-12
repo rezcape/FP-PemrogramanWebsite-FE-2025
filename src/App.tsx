@@ -9,6 +9,9 @@ import ProfilePage from "./pages/ProfilePage";
 import Quiz from "./pages/Quiz";
 import Register from "./pages/Register";
 import Sandbox from "./pages/Sandbox";
+import CreateFlipTiles from "./pages/CreateFlipTiles";
+import EditFlipTiles from "./pages/EditFlipTiles";
+import FlipTiles from "./pages/FlipTiles";
 import CreateSpeedSorting from "./pages/speed-sorting/CreateSpeedSorting";
 import EditSpeedSorting from "./pages/speed-sorting/EditSpeedSorting";
 import SpeedSorting from "./pages/speed-sorting/SpeedSorting";
@@ -19,7 +22,7 @@ import EditAnagram from "./pages/Anagram/EditAnagram";
 import MazeChase from "./pages/maze-chase/MazeChase";
 import CreateMazeChase from "./pages/maze-chase/CreateMazeChase";
 import EditMazeChase from "./pages/maze-chase/EditMazeChase";
-
+// 📌 TAMBAHAN 1: Import Komponen Game Pair or No Pair
 import PairOrNoPairGame from "./pages/pair-or-no-pair";
 import CreatePairOrNoPair from "./pages/pair-or-no-pair/create";
 import EditPairOrNoPair from "./pages/pair-or-no-pair/edit";
@@ -38,6 +41,7 @@ function App() {
         <Route path="/sandbox" element={<Sandbox />} />
         <Route path="/quiz/play/:id" element={<Quiz />} />
         <Route path="/maze-chase/play/:id" element={<MazeChase />} />
+        <Route path="/flip-tiles/play/:id" element={<FlipTiles />} />
         <Route path="/speed-sorting/play/:id" element={<SpeedSorting />} />
         <Route path="/anagram/play/:id" element={<PlayAnagram />} />
         <Route
@@ -54,10 +58,12 @@ function App() {
           <Route path="/my-projects" element={<MyProjectsPage />} />
           <Route path="/create-projects" element={<CreateProject />} />
           <Route path="/create-quiz" element={<CreateQuiz />} />
+          <Route path="/create-flip-tiles" element={<CreateFlipTiles />} />
           <Route
             path="/create-speed-sorting"
             element={<CreateSpeedSorting />}
           />
+          <Route path="/create-anagram" element={<CreateAnagram />} />
           <Route
             path="/create-pair-or-no-pair"
             element={<CreatePairOrNoPair />}
@@ -65,6 +71,7 @@ function App() {
           <Route path="/create-maze-chase" element={<CreateMazeChase />} />
           <Route path="/create-anagram" element={<CreateAnagram />} />
           <Route path="/quiz/edit/:id" element={<EditQuiz />} />
+          <Route path="/flip-tiles/edit/:id" element={<EditFlipTiles />} />
           <Route
             path="/pair-or-no-pair/edit/:id"
             element={<EditPairOrNoPair />}
