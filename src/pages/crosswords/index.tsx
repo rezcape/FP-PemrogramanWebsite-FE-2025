@@ -1,12 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, LogOut } from "lucide-react";
 import { Typography } from "@/components/ui/typography";
 import api from "@/api/axios";
-import { useCrosswordProgress } from "@/store/useCrosswordProgress";
-import { useSaveProgress, SaveProgressRequest } from "@/api/progress/useSaveProgress";
-import { useAuthStore } from "@/store/useAuthStore";
 
 // Helper convert detik ke MM:SS
 const formatTime = (seconds: number) => {
@@ -26,20 +23,6 @@ export default function PlayCrossword() {
   const [isPaused, setIsPaused] = useState(false);
   const [timer, setTimer] = useState(0);
 
-  // Crossword progress store + API
-  const startGame = useCrosswordProgress((s) => s.startGame);
-  const submitCorrect = useCrosswordProgress((s) => s.submitCorrect);
-  const submitWrong = useCrosswordProgress((s) => s.submitWrong);
-  const useHint = useCrosswordProgress((s) => s.useHint);
-  const finishGame = useCrosswordProgress((s) => s.finishGame);
-  const toPayload = useCrosswordProgress((s) => s.toPayload);
-  const resetProgress = useCrosswordProgress((s) => s.reset);
-  const getDurationMs = useCrosswordProgress((s) => s.getDurationMs);
-
-  const user = useAuthStore((s) => s.user);
-
-  const saveMutation = useSaveProgress();
-
   // Timer Effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -50,16 +33,6 @@ export default function PlayCrossword() {
     }
     return () => clearInterval(interval);
   }, [isPlaying, isPaused]);
-
-  // start when puzzle id changes / mounted
-  useEffect(() => {
-    if (!id) return;
-    startGame(id, { title: undefined });
-    return () => {
-      // keep progress on unmount; only explicit finish will save
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
 
   // LOGIC EXIT BUTTON
   const handleExit = async () => {
@@ -76,52 +49,6 @@ export default function PlayCrossword() {
   const handleTogglePause = () => {
     setIsPaused(!isPaused);
   };
-
-  // Handlers for example controls (simulate crossword actions)
-  const handleSubmitWord = useCallback(
-    (isCorrect: boolean) => {
-      if (isCorrect) submitCorrect();
-      else submitWrong();
-    },
-    [submitCorrect, submitWrong]
-  );
-
-  const handleUseHint = useCallback(() => {
-    useHint();
-  }, [useHint]);
-
-  const handleFinish = useCallback(async () => {
-    finishGame();
-
-    const payloadObj = toPayload(user?.id ?? null);
-    if (!payloadObj) {
-      resetProgress();
-      return;
-    }
-
-    const req: SaveProgressRequest = {
-      userId: payloadObj.userId ?? user?.id ?? null,
-      puzzleId: payloadObj.puzzleId,
-      startTime: payloadObj.startTime,
-      endTime: payloadObj.endTime ?? Date.now(),
-      durationMs:
-        payloadObj.durationMs ??
-        (payloadObj.endTime
-          ? payloadObj.endTime - payloadObj.startTime
-          : Date.now() - payloadObj.startTime),
-      correctAnswers: payloadObj.correctAnswers,
-      wrongAttempts: payloadObj.wrongAttempts,
-      hintUsed: payloadObj.hintUsed,
-      meta: payloadObj.meta ?? null,
-    };
-
-    try {
-      await saveMutation.mutateAsync(req);
-      resetProgress();
-    } catch (err) {
-      console.error("Save progress failed", err);
-    }
-  }, [finishGame, toPayload, user?.id, saveMutation, resetProgress]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -163,22 +90,6 @@ export default function PlayCrossword() {
             >
               Crossword Grid Goes Here
             </Typography>
-              <div className="mt-6 flex flex-col items-center gap-3">
-                <div className="space-x-2">
-                  <Button onClick={() => handleSubmitWord(true)} size="sm">Simulate Correct</Button>
-                  <Button onClick={() => handleSubmitWord(false)} size="sm">Simulate Wrong</Button>
-                  <Button onClick={handleUseHint} size="sm">Simulate Hint</Button>
-                  <Button onClick={handleFinish} size="sm">Finish & Save</Button>
-                </div>
-
-                <div className="text-sm text-slate-500">
-                  <small>Duration (ms): {getDurationMs() ?? "-"}</small>
-                </div>
-
-                {saveMutation.isLoading && <div className="text-sm text-blue-600">Saving...</div>}
-                {saveMutation.isError && <div className="text-sm text-red-600">Failed to save progress.</div>}
-                {saveMutation.isSuccess && <div className="text-sm text-green-600">Progress saved.</div>}
-              </div>
           </div>
         )}
       </div>
