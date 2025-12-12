@@ -63,7 +63,9 @@ export default function FlipTiles() {
   const [showIntro, setShowIntro] = useState(true);
 
   // Ref for spinner interval cleanup
-  const spinnerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const spinnerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const scheduleTimeout = (cb: () => void, delay: number) => {
