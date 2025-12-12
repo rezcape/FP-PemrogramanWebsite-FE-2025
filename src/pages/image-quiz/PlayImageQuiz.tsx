@@ -19,6 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import api from "@/api/axios";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useImageQuizPlayData } from "@/api/image-quiz/useImageQuizPlayData";
 import { checkImageQuizAnswer } from "@/api/image-quiz/useCheckImageQuizAnswer";
 
@@ -31,6 +33,7 @@ interface Question {
   question_id: string;
   question_text: string;
   question_image_url: string | null;
+  correct_answer_id: string;
   answers: Answer[];
 }
 
@@ -87,10 +90,9 @@ function PlayImageQuiz() {
 
   // Score State
   const [currentScore, setCurrentScore] = useState(0);
-  const [scoreDiff, setScoreDiff] = useState<{ show: boolean; val: number }>({
-    show: false,
-    val: 0,
-  });
+  const [scoreParticles, setScoreParticles] = useState<
+    { blockIndex: number; delay: number }[]
+  >([]);
 
   // User Progress
   const [userAnswers, setUserAnswers] = useState<
@@ -191,6 +193,7 @@ function PlayImageQuiz() {
     console.log("Resetting Grid for next round");
     const allBlocks = Array.from({ length: TOTAL_BLOCKS }, (_, i) => i);
     setHiddenBlocks(allBlocks);
+    setScoreParticles([]);
     setIsPlaying(false);
     setIsPaused(false);
     setActiveModal(null);
@@ -288,8 +291,40 @@ function PlayImageQuiz() {
     if (timeSpentSeconds <= 5) return 5;
     if (timeSpentSeconds <= 10) return 4;
     if (timeSpentSeconds <= 20) return 3;
-    if (timeSpentSeconds <= 30) return 2;
     return 1;
+  };
+
+  // ScoreParticle Component (nested for simplicity)
+  const ScoreParticle = ({
+    delay,
+    blockIndex,
+  }: {
+    delay: number;
+    blockIndex: number;
+  }) => {
+    const [opacity, setOpacity] = useState(0);
+
+    useEffect(() => {
+      const appearTimer = setTimeout(() => {
+        setOpacity(1); // Fade in
+        const fadeOutTimer = setTimeout(() => {
+          setOpacity(0); // Fade out
+        }, 800); // Stay visible for 800ms
+        return () => clearTimeout(fadeOutTimer);
+      }, delay); // Start delay
+      return () => clearTimeout(appearTimer);
+    }, [delay, blockIndex]); // blockIndex to re-trigger for same delay on different block
+
+    return (
+      <div
+        className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none transition-opacity duration-300"
+        style={{ opacity: opacity }}
+      >
+        <span className="text-green-400 font-black text-lg drop-shadow-md">
+          +1
+        </span>
+      </div>
+    );
   };
 
   const handleAnswerSelect = async (selectedAnswerId: string) => {
@@ -310,9 +345,39 @@ function PlayImageQuiz() {
     const timeSpentMs = currentTime - roundStartTimeRef.current;
     const timeSpentSeconds = timeSpentMs / 1000;
 
-    const estimatedPoints = calculatePointsFromTimeSpent(timeSpentSeconds);
+    const isCorrect = selectedAnswerId === currentQ.correct_answer_id;
+    const estimatedPoints = isCorrect
+      ? calculatePointsFromTimeSpent(timeSpentSeconds)
+      : 0;
 
-    setScoreDiff({ show: true, val: estimatedPoints });
+    // -- Animation Logic --
+    if (isCorrect && estimatedPoints > 0) {
+      // Select random indices from hiddenBlocks
+      const availableIndices = [...hiddenBlocks];
+      const particles: { blockIndex: number; delay: number }[] = [];
+
+      // Shuffle and pick
+      for (let i = 0; i < estimatedPoints; i++) {
+        if (availableIndices.length === 0) break;
+        const randomIndex = Math.floor(Math.random() * availableIndices.length);
+        const blockIndex = availableIndices[randomIndex];
+        particles.push({
+          blockIndex,
+          delay: i * 200, // 200ms stagger
+        });
+        availableIndices.splice(randomIndex, 1);
+      }
+      setScoreParticles(particles);
+
+      // Clear particles after animation: longest particle animation is delay + appear + stay + fade
+      // (estimatedPoints - 1) * 200 + 300 (appear) + 800 (stay) + 300 (fade) = (estimatedPoints - 1) * 200 + 1400
+      setTimeout(
+        () => {
+          setScoreParticles([]);
+        },
+        (estimatedPoints > 0 ? estimatedPoints - 1 : 0) * 200 + 1400,
+      );
+    }
 
     const updatedAnswers = [
       ...userAnswers,
@@ -324,24 +389,36 @@ function PlayImageQuiz() {
     ];
     setUserAnswers(updatedAnswers);
 
-    setTimeout(async () => {
-      setScoreDiff({ show: false, val: 0 });
-      setCurrentScore((prev) => prev + estimatedPoints);
+    setTimeout(
+      async () => {
+        setCurrentScore((prev) => prev + estimatedPoints);
 
-      const isLast = currentQuestionIndex === quiz.questions.length - 1;
-      if (!isLast) {
-        console.log("Moving to next question");
-        setCurrentQuestionIndex((prev) => prev + 1);
-        resetGrid();
-        initiateRoundStart();
-      } else {
-        console.log("Submitting Quiz");
-        await submitQuiz(updatedAnswers);
-      }
-    }, 2500);
+        const isLast = currentQuestionIndex === quiz.questions.length - 1;
+        if (!isLast) {
+          console.log("Moving to next question");
+          setCurrentQuestionIndex((prev) => prev + 1);
+          resetGrid();
+          initiateRoundStart();
+        } else {
+          console.log("Submitting Quiz");
+          await submitQuiz(updatedAnswers);
+        }
+      },
+      isCorrect ? 2500 : 1000,
+    ); // Faster transition if wrong
   };
   const handleExitGame = async () => {
-    navigate("/my-projects");
+    navigate("/");
+  };
+
+  const fetchAndUpdateUser = async () => {
+    try {
+      const response = await api.get("/api/auth/me");
+      useAuthStore.getState().setUser(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch and update user data:", error);
+      toast.error("Failed to refresh user data.");
+    }
   };
 
   const submitQuiz = async (finalAnswers: typeof userAnswers) => {
@@ -357,6 +434,9 @@ function PlayImageQuiz() {
 
       setResult(res);
       setCurrentScore(res.total_score);
+
+      // Fetch updated user data and update the store
+      await fetchAndUpdateUser();
     } catch (err) {
       console.error(err);
       setError("Failed to submit results.");
@@ -539,11 +619,6 @@ function PlayImageQuiz() {
           <div className="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2 relative">
             <Star className="text-yellow-400 w-5 h-5 fill-yellow-400" />
             <span className="text-xl font-bold text-white">{currentScore}</span>
-            {scoreDiff.show && (
-              <div className="absolute top-[-20px] right-0 text-green-400 font-bold text-xl animate-score-pop">
-                +{scoreDiff.val}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -585,14 +660,21 @@ function PlayImageQuiz() {
               gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`,
             }}
           >
-            {Array.from({ length: TOTAL_BLOCKS }, (_, i) => (
-              <div
-                key={i}
-                className={`bg-slate-800 border border-slate-900/50 ${isPlaying ? "transition-opacity duration-500" : ""} ${
-                  hiddenBlocks.includes(i) ? "opacity-100" : "opacity-0"
-                }`}
-              />
-            ))}
+            {Array.from({ length: TOTAL_BLOCKS }, (_, i) => {
+              const particle = scoreParticles.find((p) => p.blockIndex === i);
+              return (
+                <div key={i} className="relative">
+                  <div
+                    className={`absolute inset-0 bg-slate-800 border border-slate-900/50 ${isPlaying ? "transition-opacity duration-500" : ""} ${
+                      hiddenBlocks.includes(i) ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                  {particle && (
+                    <ScoreParticle delay={particle.delay} blockIndex={i} />
+                  )}{" "}
+                </div>
+              );
+            })}
           </div>
 
           {/* Start Button Overlay */}

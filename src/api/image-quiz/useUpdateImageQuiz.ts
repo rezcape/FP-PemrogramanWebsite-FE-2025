@@ -99,7 +99,7 @@ export const updateImageQuiz = async (payload: ImageQuizUpdatePayload) => {
       });
 
       filesToUpload.forEach((f) => {
-        formData.append("files_to_upload[]", f);
+        formData.append("files_to_upload", f);
       });
 
       const questionsPayload: QuestionPayload[] = payload.questions.map(
