@@ -308,6 +308,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }, gameSpeed);
 
     return () => clearInterval(moveMole);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isPlaying,
     isPaused,
@@ -319,7 +320,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     bossHealth,
     showLevelTransition,
     speedMultiplier,
-    timeLeft,
+    // timeLeft is intentionally excluded to prevent interval restart on every second
   ]);
 
   const handleWhack = (index: number) => {
