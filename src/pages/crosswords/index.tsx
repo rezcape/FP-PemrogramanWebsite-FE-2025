@@ -11,15 +11,18 @@ import {
   Trophy,
   RotateCcw,
   Home,
-  Volume2, // Icon Speaker Nyala
-  VolumeX, // Icon Speaker Mute
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { Typography } from "@/components/ui/typography";
 import api from "@/api/axios";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
-// --- IMPORT AUDIO ---
+// --- [BARU] IMPORT CONFETTI ---
+import Confetti from "react-confetti";
+
+// --- IMPORT AUDIO (Pastikan path sesuai) ---
 import bgmSound from "@/assets/bgm.mp3";
 
 // --- HELPER FORMAT WAKTU (MM:SS) ---
@@ -71,13 +74,17 @@ export default function PlayCrossword() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // --- STATE STOPWATCH & GAME STATUS ---
+  // --- STATE GAMEPLAY ---
   const [timer, setTimer] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [volume, setVolume] = useState(0.4);
 
-  // --- [BARU] STATE VOLUME (0.0 - 1.0) ---
-  const [volume, setVolume] = useState(0.4); // Default 40%
+  // --- [BARU] STATE UNTUK UKURAN LAYAR (Supaya Confetti Full Screen) ---
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   // Focus Management
   const [selectedCell, setSelectedCell] = useState<{
@@ -92,11 +99,10 @@ export default function PlayCrossword() {
   // --- LOGIKA AUDIO ---
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // 1. Inisialisasi Audio
   useEffect(() => {
     const audio = new Audio(bgmSound);
     audio.loop = true;
-    audio.volume = volume; // Set volume awal sesuai state
+    audio.volume = volume;
     audioRef.current = audio;
 
     return () => {
@@ -105,14 +111,12 @@ export default function PlayCrossword() {
     };
   }, []);
 
-  // 2. Update Volume Real-time saat slider digeser
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
   }, [volume]);
 
-  // 3. Kontrol Play/Pause Audio
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -126,8 +130,20 @@ export default function PlayCrossword() {
     }
   }, [loading, isPaused, isFinished]);
 
+  // --- [BARU] LOGIKA RESIZE LAYAR (Untuk Confetti) ---
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // ---------------------------------------------------------
-  // --- FETCHING & GAME LOGIC (Tidak Berubah) ---
+  // --- FETCHING & GAME LOGIC ---
   // ---------------------------------------------------------
 
   useEffect(() => {
@@ -295,9 +311,11 @@ export default function PlayCrossword() {
       });
       setGrid(newGrid);
       const allCorrect = results.every((r) => r.is_correct);
+
       if (allCorrect) {
         setIsPaused(true);
         setIsFinished(true);
+        // Confetti akan muncul otomatis karena isFinished = true
       } else {
         toast.error("Some answers are incorrect.");
       }
@@ -328,7 +346,20 @@ export default function PlayCrossword() {
   if (!game) return <div>Game not found</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-8 px-4 relative">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-8 px-4 relative overflow-hidden">
+      {/* --- [BARU] COMPONENT CONFETTI --- */}
+      {/* Hanya muncul jika isFinished = true. Z-Index tinggi agar di atas semua elemen */}
+      {isFinished && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={true}
+          numberOfPieces={500}
+          gravity={0.2}
+          style={{ position: "fixed", top: 0, left: 0, zIndex: 100 }}
+        />
+      )}
+
       {/* --- HEADER --- */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-6 sticky top-0 z-10 bg-slate-50 py-2 shadow-sm rounded-xl px-4 border border-slate-100">
         <Button variant="ghost" onClick={() => navigate("/")}>
@@ -336,7 +367,6 @@ export default function PlayCrossword() {
         </Button>
 
         <div className="flex items-center gap-4">
-          {/* TIMER */}
           <div
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-full border shadow-sm font-mono font-bold text-lg transition-all",
@@ -350,7 +380,7 @@ export default function PlayCrossword() {
             {formatTime(timer)}
           </div>
 
-          {/* --- [BARU] VOLUME CONTROL --- */}
+          {/* VOLUME CONTROL */}
           <div className="hidden sm:flex items-center gap-2 bg-white px-3 py-2 rounded-full border shadow-sm">
             <button onClick={() => setVolume(volume === 0 ? 0.4 : 0)}>
               {volume === 0 ? (
@@ -421,7 +451,7 @@ export default function PlayCrossword() {
 
       {isFinished && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300 max-w-sm w-full border-4 border-green-100">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300 max-w-sm w-full border-4 border-green-100 relative z-[101]">
             <div className="flex justify-center">
               <div className="bg-green-100 p-4 rounded-full">
                 <Trophy className="w-12 h-12 text-green-600" />
