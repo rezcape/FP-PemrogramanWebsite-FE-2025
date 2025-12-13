@@ -309,11 +309,7 @@ function EditTrueOrFalse() {
             <div className="bg-green-50 p-4 rounded-xl border border-green-200">
               <FormField
                 required
-                label={
-                  <span className="text-green-800 font-bold text-lg">
-                    Choice A
-                  </span>
-                }
+                label="Choice A"
                 placeholder="Example: Fakta"
                 value={choices.A}
                 onChange={(e) =>
@@ -326,11 +322,7 @@ function EditTrueOrFalse() {
             <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
               <FormField
                 required
-                label={
-                  <span className="text-emerald-800 font-bold text-lg">
-                    Choice B
-                  </span>
-                }
+                label="Choice B"
                 placeholder="Example: Opini"
                 value={choices.B}
                 onChange={(e) =>
