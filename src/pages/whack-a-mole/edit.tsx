@@ -80,7 +80,13 @@ function EditWhackAMole() {
       await api.patch(`/api/game/game-type/whack-a-mole/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      toast.success("Whack-a-Mole game updated successfully!");
+
+      if (publish) {
+        toast.success("Game updated and published successfully!");
+      } else {
+        toast.success("Game saved as draft (unpublished)!");
+      }
+
       navigate("/my-projects");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
@@ -206,59 +212,82 @@ function EditWhackAMole() {
             Cancel
           </Button>
 
-          {!isPublished && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="secondary" className="flex items-center gap-2">
+                <SaveIcon className="w-4 h-4" />
+                {isPublished ? "Save as Draft (Unpublish)" : "Save Changes"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {isPublished ? "Unpublish Game?" : "Save Changes?"}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {isPublished
+                    ? "Your changes will be saved and the game will be unpublished. Players will no longer see this game."
+                    : "Your changes will be saved. The game will remain unpublished."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => handleSubmit(false)}>
+                  {isPublished ? "Unpublish" : "Save Changes"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {isPublished && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="secondary" className="flex items-center gap-2">
-                  <SaveIcon className="w-4 h-4" />
-                  Save Changes
+                <Button className="flex items-center gap-2">
+                  Update & Keep Published
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Save Changes?</AlertDialogTitle>
+                  <AlertDialogTitle>Update Published Game?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Your changes will be saved. The game will remain
-                    unpublished.
+                    Your changes will be saved and the game will remain
+                    published.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => handleSubmit(false)}>
-                    Save Changes
+                  <AlertDialogAction onClick={() => handleSubmit(true)}>
+                    Update
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           )}
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                {isPublished ? "Update & Keep Published" : "Update & Publish"}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {isPublished
-                    ? "Update Published Game?"
-                    : "Update & Publish Game?"}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {isPublished
-                    ? "Your changes will be saved and the game will remain published."
-                    : "Your changes will be saved and the game will be published immediately."}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => handleSubmit(true)}>
-                  {isPublished ? "Update" : "Update & Publish"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {!isPublished && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  Update & Publish
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Update & Publish Game?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Your changes will be saved and the game will be published
+                    immediately.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => handleSubmit(true)}>
+                    Update & Publish
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </div>
     </div>

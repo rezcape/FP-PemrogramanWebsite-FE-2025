@@ -308,7 +308,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }, gameSpeed);
 
     return () => clearInterval(moveMole);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isPlaying,
     isPaused,
@@ -320,7 +319,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     bossHealth,
     showLevelTransition,
     speedMultiplier,
-    // timeLeft is intentionally excluded to prevent interval restart on every second
   ]);
 
   const handleWhack = (index: number) => {
@@ -369,13 +367,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-lg mx-auto font-['Fredoka'] relative z-10 pt-16">
+    <div className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 md:gap-4 w-full max-w-lg mx-auto font-['Fredoka'] relative z-10 px-1 sm:px-2 md:px-4 min-h-screen py-2 sm:py-4">
       {/* PAUSE BUTTON */}
       {isPlaying && (
         <button
           onClick={togglePause}
-          className="fixed top-6 right-6 z-50 group flex items-center gap-3 px-5 py-3 
-          bg-slate-900/80 border border-cyan-500/50 text-cyan-400 font-mono text-xs tracking-widest uppercase rounded-sm backdrop-blur-sm
+          className="fixed top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 z-50 group flex items-center gap-1 sm:gap-2 md:gap-3 px-2 sm:px-3 md:px-5 py-1.5 sm:py-2 md:py-3 
+          bg-slate-900/80 border border-cyan-500/50 text-cyan-400 font-mono text-[9px] sm:text-[10px] md:text-xs tracking-widest uppercase rounded-sm backdrop-blur-sm
           hover:bg-cyan-500 hover:text-black hover:border-cyan-500 transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
         >
           {isPaused ? "▶ RESUME" : "⏸ PAUSE"}
@@ -568,11 +566,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
       )}
 
       {/* HUD dengan Level Indicator */}
-      <div className="flex justify-between w-full items-end px-2 gap-4 relative">
+      <div className="flex justify-between w-full items-end px-1 sm:px-2 gap-2 sm:gap-3 md:gap-4 relative">
         {/* Level Badge */}
-        <div className="absolute left-1/2 -translate-x-1/2 -top-14 z-50 flex flex-col items-center gap-1">
+        <div className="absolute left-1/2 -translate-x-1/2 -top-8 sm:-top-10 md:-top-12 z-50 flex flex-col items-center gap-0.5 sm:gap-1">
           <div
-            className={`px-4 py-1 rounded-full font-mono text-xs font-bold border-2 ${
+            className={`px-2 sm:px-3 md:px-4 py-0.5 sm:py-1 rounded-full font-mono text-[8px] sm:text-[9px] md:text-xs font-bold border sm:border-2 ${
               currentLevel === 1
                 ? "bg-cyan-900/80 border-cyan-500 text-cyan-300"
                 : currentLevel === 2
@@ -580,11 +578,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
                   : "bg-red-900/80 border-red-500 text-red-300"
             }`}
           >
-            LEVEL {currentLevel}: {LEVEL_INFO[currentLevel as 1 | 2 | 3].name}
+            <span className="hidden sm:inline">
+              LEVEL {currentLevel}: {LEVEL_INFO[currentLevel as 1 | 2 | 3].name}
+            </span>
+            <span className="sm:hidden">
+              LV{currentLevel}: {LEVEL_INFO[currentLevel as 1 | 2 | 3].name}
+            </span>
           </div>
           {timeLeft < 10 && !levelComplete && (
-            <div className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded animate-pulse">
-              🚨 DATA LEAK! 2x POINTS!
+            <div className="px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 bg-red-500 text-white text-[7px] sm:text-[8px] md:text-xs font-bold rounded animate-pulse">
+              <span className="hidden sm:inline">🚨 DATA LEAK! 2x POINTS!</span>
+              <span className="sm:hidden">🚨 2x POINTS!</span>
             </div>
           )}
         </div>
@@ -611,15 +615,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
             className={`absolute -inset-[1px] bg-gradient-to-b ${isNightmareMode ? "from-red-600 via-red-800" : combo >= 5 ? "from-red-600 via-yellow-500" : "from-yellow-500"} to-transparent rounded opacity-20 transition-all`}
           ></div>
           <div
-            className={`relative bg-slate-900/90 border-l-4 ${isNightmareMode ? "border-red-600" : combo >= 5 ? "border-red-500" : "border-yellow-500"} px-3 py-3 flex flex-col items-center justify-center transition-colors min-h-[60px]`}
+            className={`relative bg-slate-900/90 border-l sm:border-l-2 md:border-l-4 ${isNightmareMode ? "border-red-600" : combo >= 5 ? "border-red-500" : "border-yellow-500"} px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-3 flex flex-col items-center justify-center transition-colors min-h-[35px] sm:min-h-[45px] md:min-h-[60px]`}
           >
             <span
-              className={`text-[10px] font-mono tracking-widest uppercase mb-1 ${isNightmareMode ? "text-red-500/80" : "text-yellow-500/80"}`}
+              className={`text-[7px] sm:text-[8px] md:text-[10px] font-mono tracking-widest uppercase mb-0.5 sm:mb-1 ${isNightmareMode ? "text-red-500/80" : "text-yellow-500/80"}`}
             >
               Score
             </span>
             <span
-              className={`text-3xl font-bold ${isNightmareMode ? "text-red-400 animate-pulse" : combo >= 5 ? "text-red-400 animate-pulse" : "text-white"}`}
+              className={`text-lg sm:text-2xl md:text-3xl font-bold ${isNightmareMode ? "text-red-400 animate-pulse" : combo >= 5 ? "text-red-400 animate-pulse" : "text-white"}`}
             >
               {score}
             </span>
@@ -632,15 +636,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
             className={`absolute -inset-[1px] bg-gradient-to-b ${isNightmareMode ? "from-red-500" : "from-green-500"} to-transparent rounded opacity-20`}
           ></div>
           <div
-            className={`relative bg-slate-900/90 border-t-4 border-b-4 ${isNightmareMode ? "border-red-500" : "border-green-500"} px-3 py-3 flex flex-col items-center justify-center min-h-[60px]`}
+            className={`relative bg-slate-900/90 border-t sm:border-t-2 md:border-t-4 border-b sm:border-b-2 md:border-b-4 ${isNightmareMode ? "border-red-500" : "border-green-500"} px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-3 flex flex-col items-center justify-center min-h-[35px] sm:min-h-[45px] md:min-h-[60px]`}
           >
             <span
-              className={`text-[10px] font-mono tracking-widest uppercase mb-1 ${isNightmareMode ? "text-red-500/80" : "text-green-500/80"}`}
+              className={`text-[7px] sm:text-[8px] md:text-[10px] font-mono tracking-widest uppercase mb-0.5 sm:mb-1 ${isNightmareMode ? "text-red-500/80" : "text-green-500/80"}`}
             >
               Target
             </span>
             <span
-              className={`text-3xl font-bold ${isNightmareMode ? "text-red-400" : "text-green-400"}`}
+              className={`text-lg sm:text-2xl md:text-3xl font-bold ${isNightmareMode ? "text-red-400" : "text-green-400"}`}
             >
               {LEVEL_REQUIREMENTS[currentLevel as 1 | 2 | 3]}
             </span>
@@ -653,18 +657,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
             className={`absolute -inset-[1px] bg-gradient-to-b ${isNightmareMode ? "from-red-600" : timeLeft <= 10 ? "from-red-500" : "from-cyan-500"} to-transparent rounded opacity-20`}
           ></div>
           <div
-            className={`relative bg-slate-900/90 border-r-4 ${isNightmareMode ? "border-red-600" : timeLeft <= 10 ? "border-red-500" : "border-cyan-500"} px-3 py-3 flex flex-col items-center justify-center min-h-[60px]`}
+            className={`relative bg-slate-900/90 border-r sm:border-r-2 md:border-r-4 ${isNightmareMode ? "border-red-600" : timeLeft <= 10 ? "border-red-500" : "border-cyan-500"} px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-3 flex flex-col items-center justify-center min-h-[35px] sm:min-h-[45px] md:min-h-[60px]`}
           >
             <span
-              className={`text-[10px] font-mono tracking-widest uppercase mb-1 ${isNightmareMode ? "text-red-400" : "text-slate-400"}`}
+              className={`text-[7px] sm:text-[8px] md:text-[10px] font-mono tracking-widest uppercase mb-0.5 sm:mb-1 ${isNightmareMode ? "text-red-400" : "text-slate-400"}`}
             >
               Time
             </span>
             <span
-              className={`text-3xl font-bold font-mono ${isNightmareMode ? "text-red-400 animate-pulse" : timeLeft <= 10 ? "text-red-400 animate-pulse" : "text-cyan-400"}`}
+              className={`text-lg sm:text-2xl md:text-3xl font-bold font-mono ${isNightmareMode ? "text-red-400 animate-pulse" : timeLeft <= 10 ? "text-red-400 animate-pulse" : "text-cyan-400"}`}
             >
               {timeLeft}
-              <span className="text-sm">s</span>
+              <span className="text-[10px] sm:text-xs md:text-sm">s</span>
             </span>
           </div>
         </div>
@@ -672,7 +676,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* MAINFRAME BOARD */}
       <div
-        className={`relative bg-slate-900/50 p-6 rounded-xl border transition-all duration-300 shadow-2xl backdrop-blur-sm w-full ${
+        className={`relative bg-slate-900/50 p-2 sm:p-3 md:p-5 rounded-xl border transition-all duration-300 shadow-2xl backdrop-blur-sm w-full ${
           isNightmareMode
             ? "border-red-600/70 shadow-[0_0_40px_rgba(220,38,38,0.5)]"
             : combo >= 5
@@ -681,10 +685,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
         }`}
       >
         {/* Dekorasi Sudut */}
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-500 rounded-tl-lg"></div>
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-500 rounded-tr-lg"></div>
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-500 rounded-bl-lg"></div>
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-500 rounded-br-lg"></div>
+        <div className="absolute top-0 left-0 w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 border-t-2 border-l-2 border-cyan-500 rounded-tl-lg"></div>
+        <div className="absolute top-0 right-0 w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 border-t-2 border-r-2 border-cyan-500 rounded-tr-lg"></div>
+        <div className="absolute bottom-0 left-0 w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 border-b-2 border-l-2 border-cyan-500 rounded-bl-lg"></div>
+        <div className="absolute bottom-0 right-0 w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 border-b-2 border-r-2 border-cyan-500 rounded-br-lg"></div>
 
         {/* OVERLAY Start/End/Pause */}
         {(!isPlaying || isPaused) && (
@@ -776,7 +780,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         )}
 
         {/* GRID LUBANG */}
-        <div className="grid grid-cols-3 gap-4 relative z-10">
+        <div className="grid grid-cols-3 gap-1 sm:gap-1.5 md:gap-3 relative z-10">
           {Array.from({ length: 9 }).map((_, index) => (
             <Hole
               key={index}

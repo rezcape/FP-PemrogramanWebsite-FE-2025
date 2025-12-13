@@ -77,7 +77,7 @@ export default function MyProjectsPage() {
   ) => {
     try {
       const form = new FormData();
-      form.append("is_publish", String(isPublish));
+      form.append("is_published", String(isPublish));
 
       await api.patch(`/api/game/game-type/${projectTemplate}/${gameId}`, form);
 
