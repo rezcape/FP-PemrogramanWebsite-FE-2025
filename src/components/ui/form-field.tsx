@@ -11,7 +11,8 @@ interface FormFieldPropsWithChildren {
   children: React.ReactNode;
 }
 
-interface FormFieldPropsWithInput extends React.InputHTMLAttributes<HTMLInputElement> {
+interface FormFieldPropsWithInput
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   required?: boolean;
   optionalLabel?: boolean;
