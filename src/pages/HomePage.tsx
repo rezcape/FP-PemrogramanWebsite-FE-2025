@@ -16,6 +16,7 @@ import { Typography } from "@/components/ui/typography";
 import { useAuthStore } from "@/store/useAuthStore";
 import { ChevronDown, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import iconHeartSolid from "../assets/images/icon-heart-solid.svg";
 import iconHeart from "../assets/images/icon-heart.svg";
 import iconPlay from "../assets/images/icon-play.svg";
@@ -66,6 +67,7 @@ export default function HomePage() {
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = !!(token && user);
+  const navigate = useNavigate();
 
   const [games, setGames] = useState<Game[]>([]);
   const [gameTemplates, setGameTemplates] = useState<GameTemplate[]>([]);
@@ -209,7 +211,7 @@ export default function HomePage() {
         console.error("Game template slug is missing for game:", game);
         return;
       }
-      window.location.href = `/${game.game_template_slug}/play/${game.id}`;
+      navigate(`/${game.game_template_slug}/play/${game.id}`);
     };
 
     return (

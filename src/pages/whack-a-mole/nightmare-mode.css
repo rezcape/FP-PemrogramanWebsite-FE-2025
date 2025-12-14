@@ -1,0 +1,284 @@
+/* Nightmare Mode CSS Animations */
+
+/* Floating virus symbols animation */
+@keyframes floatVirus {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-30px) translateX(20px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-15px) rotate(180deg);
+  }
+  75% {
+    transform: translateY(-25px) translateX(10px) rotate(270deg);
+  }
+}
+
+@keyframes floatVirusReverse {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(25px) translateX(-20px) rotate(-90deg);
+  }
+  50% {
+    transform: translateY(10px) translateX(15px) rotate(-180deg);
+  }
+  75% {
+    transform: translateY(30px) translateX(-10px) rotate(-270deg);
+  }
+}
+
+.floating-virus {
+  animation: floatVirus 8s ease-in-out infinite;
+}
+
+.floating-virus-reverse {
+  animation: floatVirusReverse 8s ease-in-out infinite;
+}
+
+.floating-virus:nth-child(2n) {
+  animation: floatVirusReverse 10s ease-in-out infinite;
+}
+
+/* Red scanning line animation */
+@keyframes redScan {
+  0% {
+    top: -5%;
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.8;
+  }
+  95% {
+    opacity: 0.8;
+  }
+  100% {
+    top: 105%;
+    opacity: 0;
+  }
+}
+
+.red-scanning-line {
+  animation: redScan 3s linear infinite;
+}
+
+/* Blood drip effect */
+@keyframes bloodDrip {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.blood-drip {
+  animation: bloodDrip 6s linear infinite;
+}
+
+/* Red glitch effect */
+@keyframes glitchRed {
+  0%,
+  100% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+}
+
+.glitch-effect {
+  animation: glitchRed 0.3s ease-in-out infinite;
+}
+
+/* Red pulse animation */
+@keyframes redPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    filter: blur(25px);
+  }
+  50% {
+    opacity: 0.7;
+    filter: blur(35px);
+  }
+}
+
+.red-pulse {
+  animation: redPulse 2s ease-in-out infinite;
+}
+
+/* Nightmare grid movement */
+@keyframes nightmareGrid {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 24px 24px;
+  }
+}
+
+.nightmare-grid {
+  animation: nightmareGrid 6s linear infinite;
+}
+
+/* Shake animation for nightmare mode */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.shake-nightmare {
+  animation: shake 0.5s ease-in-out;
+}
+
+.shake-nightmare:hover {
+  animation: shake 0.3s ease-in-out infinite;
+}
+
+/* Red lightning flash */
+@keyframes redLightning {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  20% {
+    opacity: 0;
+  }
+}
+
+.red-lightning {
+  animation: redLightning 4s ease-in-out infinite;
+}
+
+/* Virus spread animation */
+@keyframes virusSpread {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.virus-spread {
+  animation: virusSpread 4s ease-out infinite;
+}
+
+/* Danger blink */
+@keyframes dangerBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.danger-blink {
+  animation: dangerBlink 1s ease-in-out infinite;
+}
+
+/* Corrupt data stream */
+@keyframes corruptStream {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(220%);
+    opacity: 0;
+  }
+}
+
+.corrupt-stream {
+  animation: corruptStream 2.5s ease-in-out infinite;
+}
+
+/* Red particle float */
+@keyframes redParticleFloat {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-30px) translateX(15px);
+  }
+}
+
+.red-particle {
+  animation: redParticleFloat 5s ease-in-out infinite;
+}
+
+.red-particle:nth-child(2n) {
+  animation-duration: 7s;
+  animation-direction: reverse;
+}
+
+/* Nightmare vignette */
+.nightmare-vignette {
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    rgba(127, 0, 0, 0.3) 100%
+  );
+}
