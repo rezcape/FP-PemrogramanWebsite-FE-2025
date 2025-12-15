@@ -47,9 +47,8 @@ export default function CreateProject() {
         setLoading(true);
         const response = await api.get("/api/game/template");
         setTemplates(response.data.data);
-      } catch (err) {
+      } catch {
         setError("Failed to fetch game templates. Please try again later.");
-        console.error("Failed to fetch templates:", err);
       } finally {
         setLoading(false);
       }
@@ -59,10 +58,8 @@ export default function CreateProject() {
   }, []);
 
   const handleTemplateClick = (template: GameTemplate) => {
-    if (template.slug === "quiz") {
-      navigate("/create-quiz");
-    } else if (template.slug === "image-quiz") {
-      navigate("/create-image-quiz");
+    if (template.slug) {
+      navigate(`/create-${template.slug}`);
     } else {
       toast.error(`${template.name} template is coming soon!`, {
         duration: 3000,

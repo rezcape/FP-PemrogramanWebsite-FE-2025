@@ -118,3 +118,167 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ===========================
+   WHACK-A-MOLE GAME STYLES
+   (Scoped to avoid conflicts)
+   =========================== */
+
+/* Custom cursor only for whack-a-mole game container */
+.whack-a-mole-container {
+  cursor:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%2300ff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>')
+      16 16,
+    auto;
+}
+
+.whack-a-mole-container button,
+.whack-a-mole-container .cursor-pointer,
+.whack-a-mole-container a {
+  cursor:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%2300ff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>')
+      16 16,
+    pointer !important;
+}
+
+/* Robot Glow Effect */
+.whack-robot-glow {
+  filter: drop-shadow(0 0 10px rgba(50, 255, 255, 0.6));
+}
+
+/* Pop Animation */
+@keyframes whackPopUp {
+  0% {
+    transform: scale(0) translateY(20px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1) translateY(-5px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+.whack-animate-pop {
+  animation: whackPopUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Hit Animation (Glitch/Shake) */
+@keyframes whackGlitchHit {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-5px, 5px);
+    filter: hue-rotate(90deg);
+  }
+  40% {
+    transform: translate(5px, -5px);
+    filter: hue-rotate(180deg);
+  }
+  60% {
+    transform: translate(-5px, 5px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+.whack-animate-hit {
+  animation: whackGlitchHit 0.2s linear forwards;
+}
+
+/* Floating Text Animation */
+@keyframes whackFloatUp {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(1);
+    opacity: 0;
+  }
+}
+
+.whack-animate-float {
+  animation: whackFloatUp 0.8s ease-out forwards;
+  pointer-events: none;
+  position: absolute;
+  z-index: 50;
+  font-family: "Fredoka", sans-serif;
+  font-weight: 900;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Scan Line Effect (CRT Monitor) - only in whack-a-mole container */
+.whack-a-mole-container::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 255, 0, 0.02) 51%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Shake animation from upstream */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes hangman-focus-overlay {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes hangman-figure-pop {
+  0% {
+    transform: scale(0.94);
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.45));
+  }
+}

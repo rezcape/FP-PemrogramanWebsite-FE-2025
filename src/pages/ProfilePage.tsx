@@ -33,8 +33,7 @@ export default function ProfilePage() {
         setLoading(true);
         const response = await api.get("/api/auth/me/game");
         setGamesCreated(response.data.meta.total);
-      } catch (error) {
-        console.error("Failed to fetch games created:", error);
+      } catch {
         toast.error("Failed to fetch games created.");
       } finally {
         setLoading(false);

@@ -37,7 +37,8 @@ type Project = {
   description: string;
   thumbnail_image: string | null;
   is_published: boolean;
-  game_template: string;
+  game_template_name: string;
+  game_template_slug: string;
 };
 
 export default function MyProjectsPage() {
@@ -52,9 +53,8 @@ export default function MyProjectsPage() {
         setLoading(true);
         const response = await api.get("/api/auth/me/game");
         setProjects(response.data.data);
-      } catch (err) {
+      } catch {
         setError("Failed to fetch projects. Please try again later.");
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -62,84 +62,25 @@ export default function MyProjectsPage() {
     fetchProjects();
   }, []);
 
-  const isImageQuiz = (project: Project) => {
-    const templateName = project.game_template?.toLowerCase() || "";
-    // Check 1: Template Name (relaxed)
-    if (templateName.includes("image") || templateName.includes("gambar"))
-      return true;
-
-    // Check 2: Thumbnail Path
-    if (project.thumbnail_image) {
-      // Normalize slashes to forward slash for consistent checking
-      const normalizedPath = project.thumbnail_image.replace(/\\/g, "/");
-      if (
-        normalizedPath.includes("/image-quiz/") ||
-        normalizedPath.includes("image-quiz")
-      )
-        return true;
-    }
-    return false;
-  };
-
-  const handleDeleteProject = async (project: Project) => {
-    const performDelete = async (isImage: boolean) => {
-      if (isImage) {
-        await deleteImageQuiz(project.id);
-      } else {
-        await deleteQuiz(project.id);
-      }
-    };
-
+  const handleDeleteProject = async (
+    projectTemplate: string,
+    projectId: string,
+  ) => {
     try {
-      const likelyImageQuiz = isImageQuiz(project);
-      try {
-        await performDelete(likelyImageQuiz);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        // Fallback mechanism: If 404, try the other endpoint
-        if (err.response && err.response.status === 404) {
-          console.log(
-            "Detection mismatch, trying fallback endpoint for delete...",
-          );
-          await performDelete(!likelyImageQuiz);
-        } else {
-          throw err;
-        }
-      }
-
-      setProjects((prev) => prev.filter((p) => p.id !== project.id));
+      await api.delete(`/api/game/game-type/${projectTemplate}/${projectId}`);
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
       toast.success("Project deleted successfully!");
-    } catch (err) {
-      console.error("Failed to delete project:", err);
+    } catch {
       toast.error("Failed to delete project. Please try again.");
     }
   };
 
-  const handleUpdateStatus = async (project: Project, isPublish: boolean) => {
-    const performUpdate = async (isImage: boolean) => {
-      if (isImage) {
-        await updateImageQuiz({ game_id: project.id, is_publish: isPublish });
-      } else {
-        await updateQuizStatus(project.id, isPublish);
-      }
-    };
-
+  const handleUpdateStatus = async (gameId: string, isPublish: boolean) => {
     try {
-      const likelyImageQuiz = isImageQuiz(project);
-      try {
-        await performUpdate(likelyImageQuiz);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        // Fallback mechanism: If 404, try the other endpoint
-        if (err.response && err.response.status === 404) {
-          console.log(
-            "Detection mismatch, trying fallback endpoint for update status...",
-          );
-          await performUpdate(!likelyImageQuiz);
-        } else {
-          throw err;
-        }
-      }
+      await api.patch("/api/game/", {
+        game_id: gameId,
+        is_publish: isPublish,
+      });
 
       setProjects((prev) =>
         prev.map((p) =>
@@ -150,8 +91,7 @@ export default function MyProjectsPage() {
       toast.success(
         isPublish ? "Published successfully" : "Unpublished successfully",
       );
-    } catch (err) {
-      console.error("Failed to update publish status:", err);
+    } catch {
       toast.error("Failed to update status. Please try again.");
     }
   };
@@ -259,11 +199,9 @@ export default function MyProjectsPage() {
                       size="sm"
                       className="h-7"
                       onClick={() => {
-                        if (isImageQuiz(project)) {
-                          navigate(`/image-quiz/play/${project.id}`);
-                        } else {
-                          navigate(`/quiz/play/${project.id}`);
-                        }
+                        navigate(
+                          `/${project.game_template_slug}/play/${project.id}`,
+                        );
                       }}
                     >
                       <Play />
@@ -275,11 +213,9 @@ export default function MyProjectsPage() {
                     size="sm"
                     className="h-7"
                     onClick={() => {
-                      if (isImageQuiz(project)) {
-                        navigate(`/image-quiz/edit/${project.id}`);
-                      } else {
-                        navigate(`/quiz/edit/${project.id}`);
-                      }
+                      navigate(
+                        `/${project.game_template_slug}/edit/${project.id}`,
+                      );
                     }}
                   >
                     <Edit />
@@ -337,7 +273,10 @@ export default function MyProjectsPage() {
                         <AlertDialogAction
                           className="bg-red-600 hover:bg-red-700"
                           onClick={() => {
-                            handleDeleteProject(project);
+                            handleDeleteProject(
+                              project.game_template_slug,
+                              project.id,
+                            );
                           }}
                         >
                           Yes, Delete

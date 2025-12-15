@@ -18,7 +18,7 @@ interface DropzoneProps {
 }
 
 export default function Dropzone({
-  label = "Upload File",
+  label = "",
   maxSize = 5 * 1024 * 1024,
   allowedTypes = ["image/png", "image/jpeg"],
   required = false,
@@ -106,7 +106,7 @@ export default function Dropzone({
   return (
     <div className="w-full space-y-2">
       <Label className="font-medium flex items-center gap-1">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label} {required && <span className="text-red-500"></span>}
       </Label>
 
       <FileUpload.Root

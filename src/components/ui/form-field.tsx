@@ -1,16 +1,34 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import React from "react";
 
-interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface FormFieldPropsWithChildren {
   label: string;
   required?: boolean;
-  optionalLabel?: boolean; // show (optional)
+  optionalLabel?: boolean;
+  error?: string;
+  className?: string;
+  children: React.ReactNode;
 }
+
+interface FormFieldPropsWithInput
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  required?: boolean;
+  optionalLabel?: boolean;
+  error?: string;
+  className?: string;
+  children?: never;
+}
+
+type FormFieldProps = FormFieldPropsWithChildren | FormFieldPropsWithInput;
 
 export function FormField({
   label,
   required,
   optionalLabel,
+  error,
+  children,
   className,
   ...props
 }: FormFieldProps) {
@@ -24,11 +42,18 @@ export function FormField({
         )}
       </Label>
 
-      <Input
-        className={className ?? "bg-[#F3F3F5]"}
-        required={required}
-        {...props}
-      />
+      {children ? (
+        <>
+          {children}
+          {error && <p className="text-sm text-red-500">{error}</p>}
+        </>
+      ) : (
+        <Input
+          className={className ?? "bg-[#F3F3F5]"}
+          required={required}
+          {...(props as React.InputHTMLAttributes<HTMLInputElement>)}
+        />
+      )}
     </div>
   );
 }
