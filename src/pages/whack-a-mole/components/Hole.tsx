@@ -75,9 +75,9 @@ const Hole: React.FC<HoleProps> = ({ isActive, type, onClick }) => {
     <div
       onClick={handleClick}
       className={`
-        relative w-24 h-24 sm:w-32 sm:h-32 rounded-full 
+        relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-full 
         flex justify-center items-center cursor-pointer select-none
-        transition-all duration-200 border-4
+        transition-all duration-200 border sm:border-2 md:border-4
         
         ${
           isActive && type === "boss"

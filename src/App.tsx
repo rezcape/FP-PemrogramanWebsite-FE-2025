@@ -19,6 +19,10 @@ import CreateAnagram from "./pages/Anagram/CreateAnagram";
 import PlayAnagram from "./pages/Anagram/PlayAnagram";
 import EditAnagram from "./pages/Anagram/EditAnagram";
 
+import PlayUnjumble from "./pages/unjumble/PlayUnjumble";
+import CreateUnjumble from "./pages/unjumble/CreateUnjumble";
+import EditUnjumble from "./pages/unjumble/EditUnjumble";
+
 import MazeChase from "./pages/maze-chase/MazeChase";
 import CreateMazeChase from "./pages/maze-chase/CreateMazeChase";
 import EditMazeChase from "./pages/maze-chase/EditMazeChase";
@@ -30,6 +34,9 @@ import EditOpenTheBox from "./pages/open-the-box/editOpenTheBox";
 import PairOrNoPairGame from "./pages/pair-or-no-pair";
 import CreatePairOrNoPair from "./pages/pair-or-no-pair/create";
 import EditPairOrNoPair from "./pages/pair-or-no-pair/edit";
+
+import HangmanGame from "./pages/hangman";
+import CreateHangmanTemplate from "./pages/hangman/create";
 
 import CreateTrueOrFalse from "./pages/true-or-false/CreateTrueOrFalse";
 import EditTrueOrFalse from "./pages/true-or-false/EditTrueOrFalse";
@@ -65,14 +72,14 @@ function App() {
         <Route path="/sandbox" element={<Sandbox />} />
 
         <Route path="/quiz/play/:id" element={<Quiz />} />
+        <Route path="/unjumble/play/:id" element={<PlayUnjumble />} />
         <Route path="/open-the-box/play/:id" element={<OpenTheBoxGame />} />
         <Route path="/type-the-answer/play/:id" element={<TypeTheAnswer />} />
         <Route path="/maze-chase/play/:id" element={<MazeChase />} />
         <Route path="/flip-tiles/play/:id" element={<FlipTiles />} />
-
         <Route path="/speed-sorting/play/:id" element={<SpeedSorting />} />
-
         <Route path="/anagram/play/:id" element={<PlayAnagram />} />
+        <Route path="/hangman/play/:id" element={<HangmanGame />} />
         <Route
           path="/pair-or-no-pair/play/:gameId"
           element={<PairOrNoPairGame />}
@@ -120,8 +127,20 @@ function App() {
             element={<EditSpeedSorting />}
           />
 
+          <Route path="/create-hangman" element={<CreateHangmanTemplate />} />
+          <Route path="/hangman/edit/:id" element={<CreateHangmanTemplate />} />
+
+          <Route path="/create-whack-a-mole" element={<CreateWhackAMole />} />
+          <Route path="/whack-a-mole/edit/:id" element={<EditWhackAMole />} />
+
+          <Route path="/create-maze-chase" element={<CreateMazeChase />} />
+          <Route path="/maze-chase/edit/:id" element={<EditMazeChase />} />
+
           <Route path="/create-anagram" element={<CreateAnagram />} />
           <Route path="/anagram/edit/:id" element={<EditAnagram />} />
+
+          <Route path="/create-unjumble" element={<CreateUnjumble />} />
+          <Route path="/unjumble/edit/:id" element={<EditUnjumble />} />
 
           <Route
             path="/create-pair-or-no-pair"
@@ -131,12 +150,6 @@ function App() {
             path="/pair-or-no-pair/edit/:id"
             element={<EditPairOrNoPair />}
           />
-
-          <Route path="/create-whack-a-mole" element={<CreateWhackAMole />} />
-          <Route path="/whack-a-mole/edit/:id" element={<EditWhackAMole />} />
-
-          <Route path="/create-maze-chase" element={<CreateMazeChase />} />
-          <Route path="/maze-chase/edit/:id" element={<EditMazeChase />} />
 
           <Route path="/create-true-or-false" element={<CreateTrueOrFalse />} />
           <Route path="/true-or-false/edit/:id" element={<EditTrueOrFalse />} />

@@ -39,8 +39,13 @@ type GameApiResponse = {
   name: string;
   description: string;
   thumbnail_image: string | null;
-  game_template_name: string;
-  game_template_slug: string;
+  game_template_name?: string;
+  game_template_slug?: string;
+  game_template?: {
+    id: string;
+    slug: string;
+    name: string;
+  };
   total_liked: number;
   total_played: number;
   creator_id: string;

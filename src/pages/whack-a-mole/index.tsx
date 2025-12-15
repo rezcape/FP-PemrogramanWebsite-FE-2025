@@ -167,7 +167,7 @@ function WhackAMoleGame() {
       {/* Mute/Unmute Button */}
       <button
         onClick={toggleMute}
-        className={`fixed bottom-6 left-6 z-50 group flex items-center justify-center w-12 h-12
+        className={`fixed bottom-3 sm:bottom-4 md:bottom-6 left-3 sm:left-4 md:left-6 z-50 group flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12
           bg-slate-900/80 border rounded-full backdrop-blur-sm transition-all duration-300 ${
             isNightmareMode
               ? "border-red-500/50 text-red-400 hover:bg-red-500/20 hover:border-red-400"
@@ -176,28 +176,29 @@ function WhackAMoleGame() {
         title={isMuted ? "Unmute Music" : "Mute Music"}
       >
         {isMuted ? (
-          <span className="text-xl">🔇</span>
+          <span className="text-base sm:text-lg md:text-xl">🔇</span>
         ) : (
-          <span className="text-xl">🔊</span>
+          <span className="text-base sm:text-lg md:text-xl">🔊</span>
         )}
       </button>
 
       {/* Content Container dengan padding untuk scroll */}
-      <div className="relative z-10 w-full flex flex-col items-center py-12 px-4 min-h-full">
+      <div className="relative z-10 w-full flex flex-col items-center py-6 sm:py-8 md:py-12 px-2 sm:px-3 md:px-4 min-h-full">
         {/* --- LOGIKA PERPINDAHAN HALAMAN --- */}
         {view === "home" ? (
           <>
             {/* BACK TO MAIN HOMEPAGE BUTTON */}
             <button
               onClick={handleBackToHome}
-              className="fixed top-6 left-6 z-50 group flex items-center gap-3 px-5 py-3 
-            bg-slate-900/80 border border-slate-500/50 text-slate-400 font-mono text-xs tracking-widest uppercase rounded-sm backdrop-blur-sm
+              className="fixed top-3 sm:top-4 md:top-6 left-3 sm:left-4 md:left-6 z-50 group flex items-center gap-1 sm:gap-2 md:gap-3 px-2 sm:px-3 md:px-5 py-1.5 sm:py-2 md:py-3 
+            bg-slate-900/80 border border-slate-500/50 text-slate-400 font-mono text-[9px] sm:text-[10px] md:text-xs tracking-wider sm:tracking-widest uppercase rounded-sm backdrop-blur-sm
             hover:bg-slate-700 hover:text-white hover:border-slate-400 transition-all duration-300"
             >
-              <span className="text-lg group-hover:-translate-x-1 transition-transform">
+              <span className="text-xs sm:text-sm md:text-lg group-hover:-translate-x-1 transition-transform">
                 ←
               </span>
-              BACK_TO_HOME
+              <span className="hidden sm:inline">BACK_TO_HOME</span>
+              <span className="inline sm:hidden">BACK</span>
             </button>
 
             <Home
