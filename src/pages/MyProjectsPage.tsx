@@ -75,6 +75,7 @@ export default function MyProjectsPage() {
     }
   };
 
+  // --- LOGIC UPDATE STATUS (Sudah disesuaikan endpointnya) ---
   const handleUpdateStatus = async (gameId: string, isPublish: boolean) => {
     try {
       await api.patch("/api/game/", {
@@ -138,172 +139,184 @@ export default function MyProjectsPage() {
 
   const ProjectList = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-1 mt-6">
-      {projects.map((project) => (
-        <Card
-          key={project.id}
-          className="relative p-4 h-fit sm:h-80 md:h-fit cursor-pointer hover:shadow-lg transition-shadow"
-        >
-          <div className="w-full h-full flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div className="w-full h-full flex flex-col md:flex-row md:items-center gap-4">
-              <img
-                src={
-                  project.thumbnail_image
-                    ? `${import.meta.env.VITE_API_URL}/${project.thumbnail_image}`
-                    : thumbnailPlaceholder
-                }
-                alt={
-                  project.thumbnail_image
-                    ? project.name
-                    : "Placeholder Thumbnail"
-                }
-                className="w-full md:w-28 md:h-24 rounded-md object-cover"
-              />
-              <div className="flex flex-col md:gap-6 justify-between items-stretch h-full w-full">
-                <div className="flex justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+      {projects.map((project) => {
+        // --- FIX URL GAMBAR ---
+        let imageUrl = thumbnailPlaceholder;
+        if (
+          project.thumbnail_image &&
+          project.thumbnail_image !== "default_image.jpg"
+        ) {
+          if (project.thumbnail_image.startsWith("http")) {
+            imageUrl = project.thumbnail_image;
+          } else {
+            // Tambahkan Base URL jika path lokal
+            imageUrl = `${import.meta.env.VITE_API_URL}/${project.thumbnail_image}`;
+          }
+        }
+
+        return (
+          <Card
+            key={project.id}
+            className="relative p-4 h-fit sm:h-80 md:h-fit cursor-pointer hover:shadow-lg transition-shadow"
+          >
+            <div className="w-full h-full flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div className="w-full h-full flex flex-col md:flex-row md:items-center gap-4">
+                <img
+                  src={imageUrl}
+                  alt={project.name}
+                  className="w-full md:w-28 md:h-24 rounded-md object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = thumbnailPlaceholder;
+                  }}
+                />
+                <div className="flex flex-col md:gap-6 justify-between items-stretch h-full w-full">
+                  <div className="flex justify-between">
+                    <div className="space-y-1">
                       <Typography variant="p" className="font-semibold">
                         {project.name}
                       </Typography>
-                      <Badge
-                        variant="outline"
-                        className="text-xs font-normal text-gray-500 border-gray-300"
+                      <Typography
+                        variant="p"
+                        className="text-sm text-muted-foreground"
                       >
-                        {project.game_template}
+                        {project.description}
+                      </Typography>
+                    </div>
+                    <div className="md:hidden">
+                      <Badge
+                        variant={
+                          project.is_published ? "default" : "destructive"
+                        }
+                        className={
+                          project.is_published
+                            ? "capitalize bg-green-100 text-green-800"
+                            : "capitalize bg-yellow-100 text-yellow-800"
+                        }
+                      >
+                        {project.is_published ? "Published" : "Draft"}
                       </Badge>
                     </div>
-                    <Typography
-                      variant="p"
-                      className="text-sm text-muted-foreground"
-                    >
-                      {project.description}
-                    </Typography>
                   </div>
-                  <div className="md:hidden">
-                    <Badge
-                      variant={project.is_published ? "default" : "destructive"}
-                      className={
-                        project.is_published
-                          ? "capitalize bg-green-100 text-green-800"
-                          : "capitalize bg-yellow-100 text-yellow-800"
-                      }
-                    >
-                      {project.is_published ? "Published" : "Draft"}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-6 md:mt-2">
-                  {project.is_published ? (
+                  <div className="flex flex-wrap gap-2 mt-6 md:mt-2">
+                    {/* TOMBOL PLAY */}
+                    {project.is_published ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7"
+                        onClick={() => {
+                          navigate(
+                            `/${project.game_template_slug}/play/${project.id}`,
+                          );
+                        }}
+                      >
+                        <Play />
+                        Play
+                      </Button>
+                    ) : null}
+
+                    {/* TOMBOL EDIT */}
                     <Button
                       variant="outline"
                       size="sm"
                       className="h-7"
                       onClick={() => {
                         navigate(
-                          `/${project.game_template_slug}/play/${project.id}`,
+                          `/${project.game_template_slug}/edit/${project.id}`,
                         );
                       }}
                     >
-                      <Play />
-                      Play
+                      <Edit />
+                      Edit
                     </Button>
-                  ) : null}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7"
-                    onClick={() => {
-                      navigate(
-                        `/${project.game_template_slug}/edit/${project.id}`,
-                      );
-                    }}
-                  >
-                    <Edit />
-                    Edit
-                  </Button>
-                  {project.is_published ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7"
-                      onClick={() => {
-                        handleUpdateStatus(project, false);
-                      }}
-                    >
-                      <EyeOff />
-                      Unpublish
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7"
-                      onClick={() => {
-                        handleUpdateStatus(project, true);
-                      }}
-                    >
-                      <Eye />
-                      Publish
-                    </Button>
-                  )}
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+
+                    {/* TOMBOL PUBLISH / UNPUBLISH */}
+                    {project.is_published ? (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-7 text-destructive hover:text-destructive"
+                        className="h-7"
+                        onClick={() => {
+                          handleUpdateStatus(project.id, false);
+                        }}
                       >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
+                        <EyeOff />
+                        Unpublish
                       </Button>
-                    </AlertDialogTrigger>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7"
+                        onClick={() => {
+                          handleUpdateStatus(project.id, true);
+                        }}
+                      >
+                        <Eye />
+                        Publish
+                      </Button>
+                    )}
 
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Project?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete <b>{project.name}</b>?
-                          This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                        <AlertDialogAction
-                          className="bg-red-600 hover:bg-red-700"
-                          onClick={() => {
-                            handleDeleteProject(
-                              project.game_template_slug,
-                              project.id,
-                            );
-                          }}
+                    {/* TOMBOL DELETE */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-destructive hover:text-destructive"
                         >
-                          Yes, Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Project?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete{" "}
+                            <b>{project.name}</b>? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                          <AlertDialogAction
+                            className="bg-red-600 hover:bg-red-700"
+                            onClick={() => {
+                              handleDeleteProject(
+                                project.game_template_slug,
+                                project.id,
+                              );
+                            }}
+                          >
+                            Yes, Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Right side: Badge */}
-            <div className="hidden md:block">
-              <Badge
-                variant={project.is_published ? "default" : "destructive"}
-                className={
-                  project.is_published
-                    ? "text-sm px-3 bg-green-100 text-green-800"
-                    : "text-sm px-3 bg-yellow-100 text-yellow-800"
-                }
-              >
-                {project.is_published ? "Published" : "Draft"}
-              </Badge>
+              {/* Right side: Badge */}
+              <div className="hidden md:block">
+                <Badge
+                  variant={project.is_published ? "default" : "destructive"}
+                  className={
+                    project.is_published
+                      ? "text-sm px-3 bg-green-100 text-green-800"
+                      : "text-sm px-3 bg-yellow-100 text-yellow-800"
+                  }
+                >
+                  {project.is_published ? "Published" : "Draft"}
+                </Badge>
+              </div>
             </div>
-          </div>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
     </div>
   );
 

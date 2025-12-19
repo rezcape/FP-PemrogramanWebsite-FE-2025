@@ -234,6 +234,20 @@ export default function HomePage() {
       navigate(`/${game.game_template_slug}/play/${game.id}`);
     };
 
+    // --- LOGIC GAMBAR YANG BENAR ---
+    // Prioritaskan gambar dari database (hasil upload)
+    let imageUrl = thumbnailPlaceholder;
+
+    if (game.thumbnail_image && game.thumbnail_image !== "default_image.jpg") {
+      // Cek apakah URL absolut atau relatif
+      if (game.thumbnail_image.startsWith("http")) {
+        imageUrl = game.thumbnail_image;
+      } else {
+        // Jika relatif (uploads/...), tambahkan URL Backend
+        imageUrl = `${import.meta.env.VITE_API_URL}/${game.thumbnail_image}`;
+      }
+    }
+
     return (
       <Card
         className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
@@ -241,13 +255,13 @@ export default function HomePage() {
       >
         <div className="p-4 pb-0">
           <img
-            src={
-              game.thumbnail_image
-                ? `${import.meta.env.VITE_API_URL}/${game.thumbnail_image}`
-                : thumbnailPlaceholder
-            }
-            alt={game.thumbnail_image ? game.name : "Placeholder Thumbnail"}
+            src={imageUrl}
+            alt={game.name}
             className="w-full aspect-video object-cover rounded-md"
+            onError={(e) => {
+              // Fallback jika gambar rusak
+              e.currentTarget.src = thumbnailPlaceholder;
+            }}
           />
         </div>
 
@@ -264,7 +278,7 @@ export default function HomePage() {
             </Badge>
           </div>
 
-          <Typography variant="muted" className="text-sm mb-4">
+          <Typography variant="muted" className="text-sm mb-4 line-clamp-2">
             {game.description}
           </Typography>
 
@@ -276,7 +290,7 @@ export default function HomePage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex gap-3">
               {isAuthenticated ? (
                 <div
                   className="flex items-center gap-1 cursor-pointer hover:scale-105 transition-transform ease-in-out duration-150"
