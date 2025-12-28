@@ -41,6 +41,27 @@ interface Question {
   correct_answer_id: string;
 }
 
+const THEME_OPTIONS = [
+  {
+    id: "adventure",
+    name: "Adventure Time",
+    description: "Fun cartoon style",
+    colors: ["#48C9B0", "#FFD93D", "#1a1a1a"],
+  },
+  {
+    id: "family100",
+    name: "Family 100",
+    description: "Classic TV Game Show vibe (Default)",
+    colors: ["#1e3a8a", "#fbbf24", "#020617"],
+  },
+  {
+    id: "ocean",
+    name: "Ocean Breeze",
+    description: "Calm blue & white style",
+    colors: ["#0ea5e9", "#e0f2fe", "#0284c7"],
+  },
+];
+
 function EditImageQuiz() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -82,6 +103,7 @@ function EditImageQuiz() {
     isPublishImmediately: false,
     isQuestionRandomized: false,
     isAnswerRandomized: false,
+    theme: "family100",
   });
 
   const {
@@ -163,6 +185,8 @@ function EditImageQuiz() {
       isPublishImmediately: !!fetchedQuizData.is_published,
       isQuestionRandomized: !!fetchedQuizData.game_json?.is_question_randomized,
       isAnswerRandomized: !!fetchedQuizData.game_json?.is_answer_randomized,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      theme: (fetchedQuizData.game_json as any)?.theme || "family100",
     });
   }, [id, fetchedQuizData, fetchingQuiz, fetchError]);
 
@@ -293,7 +317,6 @@ function EditImageQuiz() {
       setFormErrors(newErrors);
       toast.error("Please fill in all required fields.");
 
-      // Scroll to first error
       setTimeout(() => {
         const firstError = document.querySelector(".text-red-500");
         if (firstError) {
@@ -321,114 +344,35 @@ function EditImageQuiz() {
           isPublishImmediately: publish || settings.isPublishImmediately,
           isQuestionRandomized: settings.isQuestionRandomized,
           isAnswerRandomized: settings.isAnswerRandomized,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          theme: (settings as any).theme,
         },
       });
       toast.success("Image Quiz updated successfully!");
       navigate("/my-projects");
     } catch (err) {
       console.error(err);
-      // Toast handled by hook
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Adventure Time Styles ---
   const adventureStyles = (
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Nunito:wght@400;600;700&display=swap');
-      
       .font-adventure { font-family: 'Fredoka', sans-serif; }
       .font-body { font-family: 'Nunito', sans-serif; }
-      
-      .at-card {
-        background-color: white;
-        border: 3px solid #1a1a1a;
-        border-radius: 1.5rem;
-        box-shadow: 6px 6px 0px 0px #1a1a1a;
-        transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
-      }
-      .at-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 8px 8px 0px 0px #1a1a1a;
-      }
-      
-      .at-input {
-        border: 3px solid #1a1a1a !important;
-        border-radius: 1rem !important;
-        background-color: #F0F8FF !important; /* AliceBlue */
-        font-family: 'Nunito', sans-serif !important;
-        font-weight: 600 !important;
-        padding: 1.25rem !important;
-        box-shadow: 2px 2px 0px 0px #1a1a1a !important;
-        transition: all 0.2s !important;
-      }
-      .at-input:focus {
-        background-color: #FFF !important;
-        transform: translate(-1px, -1px);
-        box-shadow: 4px 4px 0px 0px #1a1a1a !important;
-      }
-      
-      .at-btn-jake {
-        background-color: #FFD93D !important; /* Jake Yellow */
-        color: #1a1a1a !important;
-        border: 3px solid #1a1a1a !important;
-        border-radius: 1rem !important;
-        font-family: 'Fredoka', sans-serif !important;
-        font-weight: 700 !important;
-        box-shadow: 4px 4px 0px 0px #1a1a1a !important;
-        letter-spacing: 0.05em;
-        transition: all 0.1s !important;
-        padding: 0.75rem 1.5rem !important; /* py-3 px-6 */
-        height: auto !important;
-      }
-      .at-btn-jake:hover {
-        transform: translate(-2px, -2px);
-        box-shadow: 6px 6px 0px 0px #1a1a1a !important;
-        background-color: #FFE066 !important;
-      }
-      .at-btn-jake:active {
-        transform: translate(2px, 2px);
-        box-shadow: 0px 0px 0px 0px #1a1a1a !important;
-      }
-
-      .at-btn-bmo {
-        background-color: #5BC0BE !important; /* BMO Teal */
-        color: white !important;
-        border: 3px solid #1a1a1a !important;
-        border-radius: 1rem !important;
-        font-family: 'Fredoka', sans-serif !important;
-        font-weight: 700 !important;
-        box-shadow: 4px 4px 0px 0px #1a1a1a !important;
-        padding: 0.75rem 1.5rem !important; /* py-3 px-6 */
-        height: auto !important;
-      }
-      .at-btn-bmo:hover {
-        background-color: #6FD1CF !important;
-        transform: translate(-1px, -1px);
-        box-shadow: 5px 5px 0px 0px #1a1a1a !important;
-      }
-
-      .at-btn-marcy {
-        background-color: #E74C3C !important; /* Red */
-        color: white !important;
-        border: 3px solid #1a1a1a !important;
-        border-radius: 1rem !important;
-        font-family: 'Fredoka', sans-serif !important;
-        font-weight: 700 !important;
-        box-shadow: 4px 4px 0px 0px #1a1a1a !important;
-        padding: 0.75rem 1.5rem !important; /* py-3 px-6 */
-        height: auto !important;
-      }
-
-
-      .at-label {
-        font-family: 'Fredoka', sans-serif;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin-bottom: 0.5rem;
-        font-size: 1.1rem;
-      }
+      .at-card { background-color: white; border: 3px solid #1a1a1a; border-radius: 1.5rem; box-shadow: 6px 6px 0px 0px #1a1a1a; transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out; }
+      .at-card:hover { transform: translateY(-5px); box-shadow: 8px 8px 0px 0px #1a1a1a; }
+      .at-input { border: 3px solid #1a1a1a !important; border-radius: 1rem !important; background-color: #F0F8FF !important; font-family: 'Nunito', sans-serif !important; font-weight: 600 !important; padding: 1.25rem !important; box-shadow: 2px 2px 0px 0px #1a1a1a !important; transition: all 0.2s !important; }
+      .at-input:focus { background-color: #FFF !important; transform: translate(-1px, -1px); box-shadow: 4px 4px 0px 0px #1a1a1a !important; }
+      .at-btn-jake { background-color: #FFD93D !important; color: #1a1a1a !important; border: 3px solid #1a1a1a !important; border-radius: 1rem !important; font-family: 'Fredoka', sans-serif !important; font-weight: 700 !important; box-shadow: 4px 4px 0px 0px #1a1a1a !important; letter-spacing: 0.05em; transition: all 0.1s !important; padding: 0.75rem 1.5rem !important; height: auto !important; }
+      .at-btn-jake:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px 0px #1a1a1a !important; background-color: #FFE066 !important; }
+      .at-btn-jake:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px 0px #1a1a1a !important; }
+      .at-btn-bmo { background-color: #5BC0BE !important; color: white !important; border: 3px solid #1a1a1a !important; border-radius: 1rem !important; font-family: 'Fredoka', sans-serif !important; font-weight: 700 !important; box-shadow: 4px 4px 0px 0px #1a1a1a !important; padding: 0.75rem 1.5rem !important; height: auto !important; }
+      .at-btn-bmo:hover { background-color: #6FD1CF !important; transform: translate(-1px, -1px); box-shadow: 5px 5px 0px 0px #1a1a1a !important; }
+      .at-btn-marcy { background-color: #E74C3C !important; color: white !important; border: 3px solid #1a1a1a !important; border-radius: 1rem !important; font-family: 'Fredoka', sans-serif !important; font-weight: 700 !important; box-shadow: 4px 4px 0px 0px #1a1a1a !important; padding: 0.75rem 1.5rem !important; height: auto !important; }
+      .at-label { font-family: 'Fredoka', sans-serif; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; font-size: 1.1rem; }
     `}</style>
   );
 
@@ -531,13 +475,13 @@ function EditImageQuiz() {
                 </span>
               </label>
               <div className="border-4 border-dashed border-black/30 rounded-2xl p-6 bg-gray-50 hover:bg-white transition-colors">
+                {/* [PERBAIKAN] Hapus className di sini juga */}
                 <Dropzone
                   required
                   defaultValue={thumbnailPreview ?? undefined}
                   label="Upload Game Thumbnail"
                   allowedTypes={["image/png", "image/jpeg"]}
                   maxSize={2 * 1024 * 1024}
-                  className="py-3 font-body"
                   onChange={handleThumbnailChange}
                 />
               </div>
@@ -619,6 +563,7 @@ function EditImageQuiz() {
                         over time.
                       </div>
                       <div className="bg-white rounded-xl border-2 border-black shadow-inner p-4">
+                        {/* [PERBAIKAN] Hapus className */}
                         <Dropzone
                           defaultValue={
                             typeof q.questionImages === "string"
@@ -630,7 +575,6 @@ function EditImageQuiz() {
                           }
                           allowedTypes={["image/png", "image/jpeg"]}
                           maxSize={2 * 1024 * 1024}
-                          className="py-3 font-body"
                           onChange={(file) =>
                             handleQuestionImageChange(qIndex, file)
                           }
@@ -775,6 +719,81 @@ function EditImageQuiz() {
                     }))
                   }
                 />
+              </div>
+              {/* --- UI PILIHAN TEMA --- */}
+              <div className="pt-6 border-t-4 border-black/10 mt-4">
+                <div className="mb-4">
+                  <Label className="text-lg font-bold">Visual Theme</Label>
+                  <Typography
+                    variant="small"
+                    className="text-gray-600 font-medium font-body"
+                  >
+                    Choose the look and feel for your game.
+                  </Typography>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {THEME_OPTIONS.map((themeOption) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const isSelected =
+                      (settings as any).theme === themeOption.id;
+                    return (
+                      <div
+                        key={themeOption.id}
+                        onClick={() =>
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          setSettings({
+                            ...settings,
+                            theme: themeOption.id,
+                          } as any)
+                        }
+                        className={`
+                          cursor-pointer relative overflow-hidden rounded-xl border-4 transition-all duration-200 group
+                          ${
+                            isSelected
+                              ? "border-black bg-white shadow-[4px_4px_0px_0px_#000] scale-[1.02]"
+                              : "border-black/10 bg-white/60 hover:bg-white hover:border-black/30"
+                          }
+                        `}
+                      >
+                        {/* Color Preview Bar */}
+                        <div className="h-12 flex w-full border-b-2 border-black/10">
+                          <div
+                            style={{ background: themeOption.colors[0] }}
+                            className="flex-1"
+                          ></div>
+                          <div
+                            style={{ background: themeOption.colors[1] }}
+                            className="flex-1"
+                          ></div>
+                          <div
+                            style={{ background: themeOption.colors[2] }}
+                            className="flex-1"
+                          ></div>
+                        </div>
+
+                        {/* Text Info */}
+                        <div className="p-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <span
+                              className={`font-bold font-adventure text-lg ${isSelected ? "text-black" : "text-gray-600 group-hover:text-black"}`}
+                            >
+                              {themeOption.name}
+                            </span>
+                            {isSelected && (
+                              <div className="bg-green-500 text-white rounded-full p-1 border-2 border-black shadow-[1px_1px_0px_#000]">
+                                <Zap size={12} fill="white" />
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 font-bold font-body leading-tight">
+                            {themeOption.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

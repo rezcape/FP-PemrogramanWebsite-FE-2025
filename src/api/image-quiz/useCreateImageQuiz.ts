@@ -1,6 +1,6 @@
 import api from "@/api/axios";
-import toast from "react-hot-toast";
 
+// Interface Definitions
 interface Answer {
   answer_id: string;
   text: string;
@@ -15,10 +15,12 @@ interface Question {
   correct_answer_id: string;
 }
 
+// Interface Settings (Pastikan ada theme)
 interface Settings {
   isPublishImmediately: boolean;
   isQuestionRandomized: boolean;
   isAnswerRandomized: boolean;
+  theme?: string;
 }
 
 export interface ImageQuizPayload {
@@ -33,11 +35,14 @@ export const createImageQuiz = async (payload: ImageQuizPayload) => {
   try {
     const formData = new FormData();
 
+    // 1. Append Data Utama
     formData.append("thumbnail_image", payload.thumbnail);
     formData.append("name", payload.title);
-    if (payload.description)
+    if (payload.description) {
       formData.append("description", payload.description);
+    }
 
+    // 2. Append Settings
     formData.append(
       "is_publish_immediately",
       String(payload.settings.isPublishImmediately),
@@ -51,13 +56,21 @@ export const createImageQuiz = async (payload: ImageQuizPayload) => {
       String(payload.settings.isAnswerRandomized),
     );
 
+    // [PENTING] Kirim theme di root (bukan di dalam settings JSON)
+    formData.append("theme", payload.settings.theme || "family100");
+
+    // 3. Append Files Gambar Pertanyaan
     const allFiles: File[] = [];
     payload.questions.forEach((q) => {
-      if (q.questionImages) allFiles.push(q.questionImages);
+      if (q.questionImages) {
+        allFiles.push(q.questionImages);
+      }
     });
 
+    // Masukkan semua file gambar soal ke formData
     allFiles.forEach((file) => formData.append("files_to_upload", file));
 
+    // 4. Append Data JSON Pertanyaan
     const questionsPayload = payload.questions.map((q) => ({
       question_id: q.question_id,
       question_text: q.questionText,
@@ -66,6 +79,7 @@ export const createImageQuiz = async (payload: ImageQuizPayload) => {
         answer_id: a.answer_id,
         answer_text: a.text,
       })),
+      // Logic untuk menentukan index gambar di array files_to_upload
       question_image_array_index: q.questionImages
         ? allFiles.indexOf(q.questionImages)
         : undefined,
@@ -73,15 +87,15 @@ export const createImageQuiz = async (payload: ImageQuizPayload) => {
 
     formData.append("questions", JSON.stringify(questionsPayload));
 
-    const res = await api.post("/api/game/game-type/image-quiz", formData, {
-      // Changed endpoint
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    // [KUNCI PERBAIKAN DISINI]
+    // JANGAN ADA 'headers: { ... }'. Biarkan kosong.
+    // Axios akan otomatis membuat boundary multipart yang benar.
+    const res = await api.post("/api/game/game-type/image-quiz", formData);
 
     return res.data;
   } catch (err: unknown) {
     console.error("Failed to create image quiz:", err);
-    toast.error("Failed to create image quiz. Please try again.");
+    // Kita lempar error agar toast di komponen UI bisa menangkapnya (opsional, karena di sini sudah ada toast juga)
     throw err;
   }
 };

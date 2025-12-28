@@ -10,15 +10,16 @@ interface Answer {
 interface Question {
   question_id: string;
   questionText?: string;
-  questionImages: File | string | null; // File for new upload, string for existing URL
+  questionImages: File | string | null;
   answers: Answer[];
   correct_answer_id: string;
 }
 
 interface Settings {
-  isPublishImmediately: boolean; // For update, this becomes is_publish
+  isPublishImmediately: boolean;
   isQuestionRandomized: boolean;
   isAnswerRandomized: boolean;
+  theme?: string; // [PENTING] Pastikan ini ada
 }
 
 export interface ImageQuizUpdatePayload {
@@ -28,7 +29,7 @@ export interface ImageQuizUpdatePayload {
   thumbnail?: File;
   questions?: Question[];
   settings?: Settings;
-  is_publish?: boolean; // Directly set publish status
+  is_publish?: boolean;
 }
 
 interface QuestionPayload {
@@ -46,7 +47,8 @@ export const updateImageQuiz = async (payload: ImageQuizUpdatePayload) => {
   try {
     const formData = new FormData();
 
-    if (payload.thumbnail) {
+    // 1. Append Data Dasar
+    if (payload.thumbnail instanceof File) {
       formData.append("thumbnail_image", payload.thumbnail);
     }
     if (payload.title) {
@@ -56,18 +58,22 @@ export const updateImageQuiz = async (payload: ImageQuizUpdatePayload) => {
       formData.append("description", payload.description);
     }
 
-    // Use is_publish directly, if provided, otherwise check settings
+    // 2. Append Settings
+    // Menangani logika publish dari parameter langsung atau settings
     const isPublish =
       payload.is_publish ?? payload.settings?.isPublishImmediately;
+
     if (isPublish !== undefined) {
-      formData.append("is_publish", String(isPublish));
+      formData.append("is_publish_immediately", String(isPublish));
     }
+
     if (payload.settings?.isQuestionRandomized !== undefined) {
       formData.append(
         "is_question_randomized",
         String(payload.settings.isQuestionRandomized),
       );
     }
+
     if (payload.settings?.isAnswerRandomized !== undefined) {
       formData.append(
         "is_answer_randomized",
@@ -75,6 +81,12 @@ export const updateImageQuiz = async (payload: ImageQuizUpdatePayload) => {
       );
     }
 
+    // [PENTING] Kirim Theme ke Backend
+    // Menggunakan payload.settings.theme, jika kosong fallback ke 'family100'
+    const themeToSend = payload.settings?.theme || "family100";
+    formData.append("theme", themeToSend);
+
+    // 3. Handle Questions & Images
     if (payload.questions) {
       const filesToUpload: File[] = [];
       const questionImageFileIndex: (number | string | undefined)[] = new Array(
@@ -83,25 +95,31 @@ export const updateImageQuiz = async (payload: ImageQuizUpdatePayload) => {
 
       payload.questions.forEach((q, qi) => {
         if (q.questionImages instanceof File) {
+          // Kasus A: User upload gambar baru -> Simpan ke array filesToUpload
           questionImageFileIndex[qi] = filesToUpload.length;
           filesToUpload.push(q.questionImages);
         } else if (typeof q.questionImages === "string") {
+          // Kasus B: User pakai gambar lama -> Bersihkan URL agar relatif
           const base = import.meta.env.VITE_API_URL ?? "";
           let relative = q.questionImages;
+          // Hapus base URL jika ada, agar yang dikirim hanya path relatif (misal: uploads/img.jpg)
           if (base && relative.startsWith(base)) {
             relative = relative.replace(base + "/", "");
             if (relative.startsWith("/")) relative = relative.substring(1);
           }
           questionImageFileIndex[qi] = relative;
         } else {
+          // Kasus C: Tidak ada gambar
           questionImageFileIndex[qi] = undefined;
         }
       });
 
+      // Masukkan semua file baru ke FormData
       filesToUpload.forEach((f) => {
         formData.append("files_to_upload", f);
       });
 
+      // Susun JSON Questions
       const questionsPayload: QuestionPayload[] = payload.questions.map(
         (q, qi) => {
           const qPayload: QuestionPayload = {
@@ -113,6 +131,8 @@ export const updateImageQuiz = async (payload: ImageQuizUpdatePayload) => {
             })),
             correct_answer_id: q.correct_answer_id,
           };
+
+          // Masukkan referensi gambar (bisa berupa index angka atau string path)
           const idx = questionImageFileIndex[qi];
           if (idx !== undefined) {
             qPayload.question_image_array_index = idx as number | string;
@@ -124,13 +144,12 @@ export const updateImageQuiz = async (payload: ImageQuizUpdatePayload) => {
       formData.append("questions", JSON.stringify(questionsPayload));
     }
 
+    // [FIX UTAMA]
+    // 1. Gunakan 'api.patch' (bukan put) agar sesuai route backend Anda.
+    // 2. JANGAN pakai headers manual 'Content-Type'. Biarkan Axios mengaturnya.
     const res = await api.patch(
       `/api/game/game-type/image-quiz/${payload.game_id}`,
       formData,
-      {
-        // Changed endpoint
-        headers: { "Content-Type": "multipart/form-data" },
-      },
     );
 
     return res.data;
