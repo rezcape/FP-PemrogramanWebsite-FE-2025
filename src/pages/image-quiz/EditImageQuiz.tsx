@@ -41,12 +41,19 @@ interface Question {
   correct_answer_id: string;
 }
 
+interface QuizSettings {
+  isPublishImmediately: boolean;
+  isQuestionRandomized: boolean;
+  isAnswerRandomized: boolean;
+  theme: string;
+}
+
 const THEME_OPTIONS = [
   {
     id: "adventure",
-    name: "Adventure Time",
-    description: "Fun cartoon style",
-    colors: ["#48C9B0", "#FFD93D", "#1a1a1a"],
+    name: "Medieval Kingdom",
+    description: "Knights, parchment, and royal aesthetics",
+    colors: ["#451a03", "#fcd34d", "#e7d5b9"],
   },
   {
     id: "family100",
@@ -139,20 +146,22 @@ function EditImageQuiz() {
     const mappedQuestions: Question[] = (
       fetchedQuizData.game_json?.questions || []
     ).map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (q: any) => ({
+      (q: {
+        question_id?: string;
+        questionText?: string;
+        questionImages?: MaybeFileOrUrl;
+        correct_answer_id?: string;
+        answers?: { answer_id?: string; text?: string; isCorrect: boolean }[];
+      }) => ({
         question_id: q.question_id || uuidv4(),
         questionText: q.questionText || "",
-        questionImages: q.questionImages,
+        questionImages: q.questionImages || null,
         correct_answer_id: q.correct_answer_id || "",
-        answers: (q.answers || []).map(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (a: any) => ({
-            answer_id: a.answer_id || uuidv4(),
-            text: a.text ?? "",
-            isCorrect: a.isCorrect,
-          }),
-        ),
+        answers: (q.answers || []).map((a) => ({
+          answer_id: a.answer_id || uuidv4(),
+          text: a.text ?? "",
+          isCorrect: !!a.isCorrect,
+        })),
       }),
     );
 
@@ -181,12 +190,17 @@ function EditImageQuiz() {
 
     setQuestions(finalQuestions);
 
+    const gameJson = fetchedQuizData.game_json as {
+      is_question_randomized?: boolean;
+      is_answer_randomized?: boolean;
+      theme?: string;
+    };
+
     setSettings({
       isPublishImmediately: !!fetchedQuizData.is_published,
-      isQuestionRandomized: !!fetchedQuizData.game_json?.is_question_randomized,
-      isAnswerRandomized: !!fetchedQuizData.game_json?.is_answer_randomized,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      theme: (fetchedQuizData.game_json as any)?.theme || "family100",
+      isQuestionRandomized: !!gameJson?.is_question_randomized,
+      isAnswerRandomized: !!gameJson?.is_answer_randomized,
+      theme: gameJson?.theme || "family100",
     });
   }, [id, fetchedQuizData, fetchingQuiz, fetchError]);
 
@@ -328,6 +342,14 @@ function EditImageQuiz() {
 
     try {
       setLoading(true);
+
+      const finalSettings: QuizSettings = {
+        isPublishImmediately: publish || settings.isPublishImmediately,
+        isQuestionRandomized: settings.isQuestionRandomized,
+        isAnswerRandomized: settings.isAnswerRandomized,
+        theme: settings.theme, // Tidak perlu 'as any' lagi
+      };
+
       await updateImageQuiz({
         game_id: id!,
         title,
@@ -340,13 +362,7 @@ function EditImageQuiz() {
           answers: q.answers,
           correct_answer_id: q.correct_answer_id,
         })),
-        settings: {
-          isPublishImmediately: publish || settings.isPublishImmediately,
-          isQuestionRandomized: settings.isQuestionRandomized,
-          isAnswerRandomized: settings.isAnswerRandomized,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          theme: (settings as any).theme,
-        },
+        settings: finalSettings,
       });
       toast.success("Image Quiz updated successfully!");
       navigate("/my-projects");
@@ -734,18 +750,15 @@ function EditImageQuiz() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {THEME_OPTIONS.map((themeOption) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const isSelected =
-                      (settings as any).theme === themeOption.id;
+                    const isSelected = settings.theme === themeOption.id;
                     return (
                       <div
                         key={themeOption.id}
                         onClick={() =>
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          setSettings({
-                            ...settings,
+                          setSettings((prev) => ({
+                            ...prev,
                             theme: themeOption.id,
-                          } as any)
+                          }))
                         }
                         className={`
                           cursor-pointer relative overflow-hidden rounded-xl border-4 transition-all duration-200 group

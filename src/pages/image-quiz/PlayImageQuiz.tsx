@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { Typography } from "@/components/ui/typography";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Pause,
@@ -49,7 +50,7 @@ interface ImageQuizGameData {
   thumbnail_image: string | null;
   questions: Question[];
   tile_config: ImageQuizPlayConfig;
-  theme?: "adventure" | "family100" | "ocean"; // [PERBAIKAN] Tambah theme
+  theme?: "adventure" | "family100" | "ocean";
 }
 
 // Grid Configuration
@@ -61,18 +62,21 @@ const TOTAL_BLOCKS = GRID_COLS * GRID_ROWS;
 const THEME_STYLES = {
   family100: {
     bgClass: "f100-bg",
+    tileClass: "f100-tile",
     font: "font-f100",
     panelClass: "f100-panel",
-    modalClass: "bg-[#0f172a] border-4 border-blue-500",
+    modalClass:
+      "bg-gradient-to-b from-[#172554] to-[#020617] border-4 border-[#3b82f6] shadow-[0_0_50px_rgba(0,0,0,0.8)] rounded-xl text-white",
     titleText: "f100-title-text",
     buttonPrimary: "f100-btn-primary",
     buttonSecondary: "f100-btn-secondary",
     textHighlight: "text-yellow-400",
     buzzerClass: "f100-buzzer",
     optionButton:
-      "bg-gradient-to-r from-blue-900 to-blue-950 border-2 border-blue-500 hover:border-yellow-400 rounded-xl shadow-[0_0_20px_rgba(250,204,21,0.3)]",
+      "bg-blue-900/80 border-2 border-blue-400 hover:border-yellow-400 hover:bg-blue-800 rounded-xl shadow-md transition-all",
     optionLetter:
-      "bg-blue-800 border border-blue-400 text-white font-digital group-hover:bg-yellow-500 group-hover:text-black",
+      "bg-yellow-500 text-black border border-yellow-300 font-digital font-bold shadow-sm",
+
     css: (
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700;800&family=Orbitron:wght@400;700;900&display=swap');
@@ -80,7 +84,30 @@ const THEME_STYLES = {
         .font-digital { font-family: 'Orbitron', monospace; }
         .f100-bg { background: radial-gradient(circle at center, #172554 0%, #020617 100%); color: white; }
         .f100-panel { background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%); border: 4px solid #3b82f6; box-shadow: 0 0 0 2px #1e3a8a, 0 0 20px rgba(59, 130, 246, 0.6); border-radius: 1rem; }
-        .f100-title-text { font-family: 'Chakra Petch', sans-serif; font-weight: 800; text-transform: uppercase; background: linear-gradient(180deg, #ffffff 0%, #93c5fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 2px 0px #1e3a8a); }
+        
+        /* [UPDATE] Judul Teks Putih Solid + Glow (Hapus gradient transparan) */
+        .f100-title-text { 
+            font-family: 'Chakra Petch', sans-serif; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            color: #ffffff; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 15px rgba(59, 130, 246, 0.9); 
+            letter-spacing: 1px;
+        }
+
+        /* [BARU] EFEK 3D/TIMBUL UNTUK KOTAK GRID */
+        .f100-tile {
+          background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%); /* Gradasi Biru */
+          border-radius: 4px;
+          /* Kombinasi Shadow untuk efek tebal */
+          box-shadow: 
+            inset 1px 1px 0px rgba(255, 255, 255, 0.4), /* Kilau atas kiri */
+            inset -1px -1px 0px rgba(0, 0, 0, 0.2),    /* Bayangan dalam kanan bawah */
+            0 3px 0px #172554,                          /* Shadow Solid (Ketebalan 3D) */
+            0 4px 4px rgba(0, 0, 0, 0.3);               /* Bayangan lembut ke lantai */
+          border: 1px solid #3b82f6;
+        }
+
         .f100-btn-primary { background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); border: 3px solid #fef3c7; color: #451a03; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 6px 0 #92400e; transition: all 0.1s; }
         .f100-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #92400e; }
         .f100-btn-secondary { background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); border: 3px solid #bfdbfe; color: white; font-weight: 700; }
@@ -90,36 +117,149 @@ const THEME_STYLES = {
     ),
   },
   adventure: {
-    bgClass: "at-bg",
-    font: "font-adventure",
-    panelClass: "at-panel",
-    modalClass: "bg-[#48C9B0] border-4 border-black",
-    titleText: "font-black text-white drop-shadow-[2px_2px_0px_#000]",
-    buttonPrimary: "at-btn-jake",
-    buttonSecondary: "at-btn-bmo",
-    textHighlight: "text-[#d97706]",
-    buzzerClass: "at-buzzer",
+    bgClass: "medieval-bg",
+    tileClass:
+      "bg-[#44403c] border border-[#292524] shadow-[inset_0_2px_4px_rgba(255,255,255,0.1),inset_0_-2px_4px_rgba(0,0,0,0.5)]",
+    font: "font-medieval-body",
+    panelClass: "medieval-panel",
+    modalClass:
+      "bg-[#e7d5b9] border-[6px] border-[#451a03] rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.8)]",
+    titleText:
+      "font-medieval-title text-[#451a03] tracking-widest drop-shadow-md uppercase",
+    buttonPrimary: "medieval-btn-royal",
+    buttonSecondary: "medieval-btn-iron",
+    textHighlight: "text-[#b91c1c]",
+    buzzerClass: "medieval-buzzer",
     optionButton:
-      "bg-white border-4 border-black hover:bg-yellow-100 rounded-xl shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000]",
+      "bg-[#f5ebe0] border-[3px] border-[#78350f] hover:bg-[#d6c0a0] rounded-sm shadow-md hover:scale-[1.01] transition-all relative overflow-hidden",
     optionLetter:
-      "bg-black text-white font-black rounded-lg group-hover:bg-[#FFD93D] group-hover:text-black",
+      "bg-[#78350f] text-[#f5ebe0] font-medieval-title border border-[#451a03]",
     css: (
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Nunito:wght@400;600;700&display=swap');
-        .font-adventure { font-family: 'Fredoka', sans-serif; }
-        .font-digital { font-family: 'Nunito', sans-serif; font-weight: 800; }
-        .at-bg { background-color: #48C9B0; color: #1a1a1a; }
-        .at-panel { background-color: white; border: 4px solid #1a1a1a; border-radius: 1.5rem; box-shadow: 6px 6px 0px 0px #1a1a1a; }
-        .at-btn-jake { background-color: #FFD93D; color: #1a1a1a; border: 3px solid #1a1a1a; font-weight: 700; box-shadow: 4px 4px 0px 0px #1a1a1a; border-radius: 1rem; }
-        .at-btn-jake:hover { background-color: #FFE066; transform: translate(-2px, -2px); box-shadow: 6px 6px 0px 0px #1a1a1a; }
-        .at-btn-bmo { background-color: #5BC0BE; color: white; border: 3px solid #1a1a1a; font-weight: 700; box-shadow: 4px 4px 0px 0px #1a1a1a; border-radius: 1rem; }
-        .at-buzzer { background: #E74C3C; border: 4px solid #1a1a1a; box-shadow: 6px 6px 0px 0px #1a1a1a; border-radius: 50%; }
-        .at-buzzer:active { transform: scale(0.95); box-shadow: 2px 2px 0px 0px #1a1a1a; }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap');
+        
+        .font-medieval-title { font-family: 'Cinzel', serif; font-weight: 900; }
+        .font-medieval-body { font-family: 'MedievalSharp', cursive; }
+        .font-digital { font-family: 'Cinzel', serif; letter-spacing: 2px; } /* Override font digital jadi classic */
+
+        /* Background: Tekstur Kayu Gelap / Batu */
+        .medieval-bg { 
+          background-color: #1a0f0a; /* Warna cadangan jika gambar gagal load */
+          
+          /* Ganti URL ini sesuai nama file di folder public Anda */
+          /* Contoh: jika file ada di public/images/medieval-bg.jpg */
+          background-image: url('/images/medieval-bg.jpg'); 
+          
+          background-size: cover;      /* Agar gambar memenuhi layar */
+          background-position: center; /* Posisi gambar di tengah */
+          background-repeat: no-repeat;
+          background-attachment: fixed; /* Agar background diam saat scroll */
+          
+          color: #f5ebe0;
+        }
+
+        .medieval-bg .bg-[#44403c] {
+          background-image: 
+            radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(135deg, #57534e 0%, #44403c 100%);
+          background-size: 4px 4px, cover;
+          position: relative;
+        }
+
+        /* Memberikan efek retakan halus pada batu */
+        .medieval-bg .bg-[#44403c]::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          opacity: 0.2;
+          background-image: url("https://www.transparenttextures.com/patterns/asfalt-dark.png");
+        }
+
+        /* Panel: Kertas Perkamen (Parchment) */
+        .medieval-panel { 
+          background-color: #e7d5b9; /* Parchment Color */
+          border: 4px double #78350f; /* Double border kayu */
+          border-radius: 0.5rem; 
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 40px rgba(120, 53, 15, 0.2);
+          color: #292524;
+        }
+
+        /* --- ORNAMEN SUDUT (Baru) --- */
+        .medieval-corner {
+          position: absolute;
+          width: 40px;
+          height: 40px;
+          border-color: #d4af37;
+          border-style: solid;
+          z-index: 50;
+          pointer-events: none;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        /* Hiasan bulat kecil di ujung sudut */
+        .medieval-corner::after {
+          content: '';
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          background: #d4af37;
+          border-radius: 50%;
+          box-shadow: 0 0 5px #fcd34d;
+        }
+
+        /* Aturan spesifik per sudut */
+        .corner-tl { top: -6px; left: -6px; border-width: 4px 0 0 4px; border-radius: 8px 0 0 0; }
+        .corner-tl::after { top: -4px; left: -4px; }
+
+        .corner-tr { top: -6px; right: -6px; border-width: 4px 4px 0 0; border-radius: 0 8px 0 0; }
+        .corner-tr::after { top: -4px; right: -4px; }
+
+        .corner-bl { bottom: -6px; left: -6px; border-width: 0 0 4px 4px; border-radius: 0 0 0 8px; }
+        .corner-bl::after { bottom: -4px; left: -4px; }
+
+        .corner-br { bottom: -6px; right: -6px; border-width: 0 4px 4px 0; border-radius: 0 0 8px 0; }
+        .corner-br::after { bottom: -4px; right: -4px; }
+        /* -------------------------- */
+
+        /* Tombol Kerajaan */
+        .medieval-btn-royal { 
+          background: linear-gradient(180deg, #525252 0%, #171717 100%);
+          color: #fef3c7; 
+          border: 2px solid #fcd34d; /* Border Emas */
+          border-radius: 0.25rem;
+          font-family: 'Cinzel', serif;
+          text-transform: uppercase;
+          box-shadow: 0 4px 0 #450a0a;
+          transition: all 0.1s;
+        }
+        .medieval-btn-royal:hover { filter: brightness(1.2); }
+        .medieval-btn-royal:active { transform: translateY(2px); box-shadow: none; }
+
+        /* Tombol Besi/Netral */
+        .medieval-btn-iron { 
+          background: linear-gradient(180deg, #57534e 0%, #292524 100%); 
+          color: #d6d3d1; 
+          border: 2px solid #78716c; 
+          border-radius: 0.25rem;
+          font-family: 'Cinzel', serif;
+          box-shadow: 0 4px 0 #1c1917;
+        }
+        .medieval-btn-iron:hover { background: #78716c; color: white; }
+        .medieval-btn-iron:active { transform: translateY(2px); box-shadow: none; }
+
+        /* Buzzer: Wax Seal Merah */
+        .medieval-buzzer { 
+          background: radial-gradient(circle at 40% 40%, #525252 0%, #171717 100%); 
+          border: 4px solid #262626; 
+          box-shadow: 0 5px 15px rgba(0,0,0,0.8); 
+          border-radius: 50%; 
+        }
+        .medieval-buzzer:active { transform: scale(0.95); }
       `}</style>
     ),
   },
   ocean: {
     bgClass: "ocean-bg",
+    tileClass: "bg-white/60 backdrop-blur-[2px] border border-white/40",
     font: "font-ocean",
     panelClass: "ocean-panel",
     modalClass:
@@ -469,10 +609,13 @@ function PlayImageQuiz() {
 
     return (
       <div
-        className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none transition-opacity duration-300"
-        style={{ opacity: opacity }}
+        className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none transition-all duration-300"
+        style={{
+          opacity: opacity,
+          transform: opacity === 1 ? "translateY(-20px)" : "translateY(0)",
+        }}
       >
-        <span className="text-yellow-400 font-black text-3xl drop-shadow-[3px_3px_0px_#000] font-digital">
+        <span className="text-yellow-400 font-black text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-digital">
           +1
         </span>
       </div>
@@ -843,73 +986,99 @@ function PlayImageQuiz() {
 
         {/* Image Grid */}
         <div
-          className={`relative w-full max-w-4xl aspect-[2/1] bg-black rounded-xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.4)] ${activeStyle.panelClass}`}
+          // [REVISI 1] HAPUS 'overflow-hidden' dari sini agar sudut emas bisa muncul keluar
+          className={`relative w-full max-w-4xl aspect-[2/1] bg-black rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.4)] ${activeStyle.panelClass}`}
         >
-          {isPaused && !isTimeUp && !activeModal && (
-            <div className="absolute inset-0 bg-black/60 z-20 backdrop-blur-sm flex items-center justify-center">
-              <h2 className="text-4xl font-black text-white uppercase tracking-widest">
-                Paused
-              </h2>
-            </div>
+          {/* [REVISI 2] Pastikan ornamen ada di LUAR wrapper gambar tapi di DALAM panel utama */}
+          {activeThemeId === "adventure" && (
+            <>
+              <div className="medieval-corner corner-tl"></div>
+              <div className="medieval-corner corner-tr"></div>
+              <div className="medieval-corner corner-bl"></div>
+              <div className="medieval-corner corner-br"></div>
+            </>
           )}
 
-          {currentQ.question_image_url ? (
-            <img
-              src={getImageUrl(currentQ.question_image_url) || ""}
-              alt="Hidden"
-              className="absolute inset-0 w-full h-full object-cover object-center"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-slate-500 bg-slate-900">
-              <span className="font-digital">NO IMAGE SIGNAL</span>
-            </div>
-          )}
-
-          <div
-            className="absolute inset-0 grid"
-            style={{
-              gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
-              gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`,
-            }}
-          >
-            {Array.from({ length: TOTAL_BLOCKS }, (_, i) => {
-              const particle = scoreParticles.find((p) => p.blockIndex === i);
-              return (
-                <div key={i} className="relative">
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br from-blue-700 to-blue-900 border border-black/20 ${isPlaying ? "transition-transform duration-500 ease-in-out" : ""} ${hiddenBlocks.includes(i) ? "opacity-100 scale-100" : "opacity-0 scale-0"}`}
-                  >
-                    <div className="absolute inset-[1px] border border-white/10 opacity-30"></div>
-                  </div>
-                  {particle && (
-                    <ScoreParticle delay={particle.delay} blockIndex={i} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {!isPlaying &&
-            hiddenBlocks.length === TOTAL_BLOCKS &&
-            !isPaused &&
-            startCountdown === null && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20 backdrop-blur-sm">
-                <Button
-                  onClick={initiateRoundStart}
-                  className={`text-2xl py-8 px-12 rounded-full h-auto animate-bounce shadow-lg ${activeStyle.buttonPrimary}`}
-                >
-                  START ROUND
-                </Button>
+          {/* [REVISI 3] Buat Wrapper Baru untuk Gambar & Grid agar tetap rounded dan rapi */}
+          <div className="relative w-full h-full overflow-hidden rounded-lg">
+            {isPaused && !isTimeUp && !activeModal && (
+              <div className="absolute inset-0 bg-black/60 z-20 backdrop-blur-sm flex items-center justify-center">
+                <h2 className="text-4xl font-black text-white uppercase tracking-widest">
+                  Paused
+                </h2>
               </div>
             )}
 
-          {startCountdown !== null && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30 backdrop-blur-sm">
-              <div className="text-[12rem] font-digital font-black text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] animate-pulse">
-                {startCountdown === 0 ? "GO!" : startCountdown}
+            {currentQ.question_image_url ? (
+              <img
+                src={getImageUrl(currentQ.question_image_url) || ""}
+                alt="Hidden"
+                className="absolute inset-0 w-full h-full object-cover object-center"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-slate-500 bg-slate-900">
+                <span className="font-digital">NO IMAGE SIGNAL</span>
               </div>
+            )}
+
+            {/* Grid Overlay */}
+            <div
+              className="absolute inset-0 grid"
+              style={{
+                gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
+                gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`,
+              }}
+            >
+              {Array.from({ length: TOTAL_BLOCKS }, (_, i) => {
+                const particle = scoreParticles.find((p) => p.blockIndex === i);
+
+                return (
+                  <div key={i} className="relative w-full h-full">
+                    {/* Kotak Batu/Biru hanya muncul jika ada di hiddenBlocks */}
+                    {hiddenBlocks.includes(i) && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{
+                          opacity: 0,
+                          scale: 0,
+                          transition: { duration: 0.3 },
+                        }}
+                        className={`w-full h-full ${activeStyle.tileClass}`}
+                      />
+                    )}
+
+                    {/* Particle dipisah, tidak boleh di dalam logic hiddenBlocks */}
+                    {particle && (
+                      <ScoreParticle delay={particle.delay} blockIndex={i} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
+
+            {!isPlaying &&
+              hiddenBlocks.length === TOTAL_BLOCKS &&
+              !isPaused &&
+              startCountdown === null && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-20 backdrop-blur-sm">
+                  <Button
+                    onClick={initiateRoundStart}
+                    className={`text-2xl py-8 px-12 rounded-full h-auto animate-bounce shadow-lg ${activeStyle.buttonPrimary}`}
+                  >
+                    START ROUND
+                  </Button>
+                </div>
+              )}
+
+            {startCountdown !== null && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-30 backdrop-blur-sm">
+                <div className="text-[12rem] font-digital font-black text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] animate-pulse">
+                  {startCountdown === 0 ? "GO!" : startCountdown}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Bottom Controls */}

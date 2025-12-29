@@ -42,9 +42,9 @@ interface Question {
 const THEME_OPTIONS = [
   {
     id: "adventure",
-    name: "Adventure Time",
-    description: "Fun cartoon style",
-    colors: ["#48C9B0", "#FFD93D", "#1a1a1a"],
+    name: "Medieval Kingdom",
+    description: "Knights, parchment, and royal aesthetics",
+    colors: ["#451a03", "#fcd34d", "#e7d5b9"],
   },
   {
     id: "family100",
