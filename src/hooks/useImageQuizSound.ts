@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 type SoundType =
   | "bgm"
@@ -57,38 +57,41 @@ export const useImageQuizSound = () => {
     };
   }, []);
 
-  const playSound = (type: SoundType) => {
-    if (isMuted) return;
+  const playSound = useCallback(
+    (type: SoundType) => {
+      if (isMuted) return;
 
-    const audio = audioRefs.current[type];
-    if (audio) {
-      console.log(`Playing sound: ${type}`); // Debug log
-      // For SFX, allow overlapping plays (except BGM)
-      if (type !== "bgm") {
-        const clone = audio.cloneNode() as HTMLAudioElement;
-        clone.volume = audio.volume;
-        clone.play().catch((e) => {
-          console.warn(`Failed to play sound "${type}":`, e);
-        });
+      const audio = audioRefs.current[type];
+      if (audio) {
+        console.log(`Playing sound: ${type}`); // Debug log
+        // For SFX, allow overlapping plays (except BGM)
+        if (type !== "bgm") {
+          const clone = audio.cloneNode() as HTMLAudioElement;
+          clone.volume = audio.volume;
+          clone.play().catch((e) => {
+            console.warn(`Failed to play sound "${type}":`, e);
+          });
+        } else {
+          audio.play().catch((e) => {
+            console.warn(`Failed to play BGM:`, e);
+          });
+        }
       } else {
-        audio.play().catch((e) => {
-          console.warn(`Failed to play BGM:`, e);
-        });
+        console.warn(`Sound "${type}" not found in refs.`);
       }
-    } else {
-      console.warn(`Sound "${type}" not found in refs.`);
-    }
-  };
+    },
+    [isMuted],
+  );
 
-  const stopSound = (type: SoundType) => {
+  const stopSound = useCallback((type: SoundType) => {
     const audio = audioRefs.current[type];
     if (audio) {
       audio.pause();
       audio.currentTime = 0;
     }
-  };
+  }, []);
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     setIsMuted((prev) => {
       const next = !prev;
       // If muting, stop all sounds
@@ -100,7 +103,7 @@ export const useImageQuizSound = () => {
       }
       return next;
     });
-  };
+  }, []);
 
   return { playSound, stopSound, toggleMute, isMuted };
 };

@@ -268,7 +268,7 @@ function CreateImageQuiz() {
         >
           Create Image Quiz
         </Typography>
-        <div className="w-[80px]"></div>
+        <div className="w-20"></div>
       </div>
 
       <div className="w-full h-full pt-20 pb-10 px-4 md:px-8 flex flex-col items-center relative z-10">
