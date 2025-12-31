@@ -53,10 +53,10 @@ const THEME_OPTIONS = [
     colors: ["#1e3a8a", "#fbbf24", "#020617"],
   },
   {
-    id: "ocean",
-    name: "Ocean Breeze",
-    description: "Calm blue & white style",
-    colors: ["#0ea5e9", "#e0f2fe", "#0284c7"],
+    id: "cyberpunk",
+    name: "Cyberpunk Hacker",
+    description: "Neon lights and terminal aesthetics",
+    colors: ["#00f2ff", "#ff00ff", "#050505"],
   },
 ];
 
@@ -341,7 +341,6 @@ function CreateImageQuiz() {
                 </span>
               </label>
               <div className="border-4 border-dashed border-black/30 rounded-2xl p-6 bg-gray-50 hover:bg-white transition-colors">
-                {/* [FIXED] Removed className prop, wrapper div used instead */}
                 <Dropzone
                   required
                   label="Upload Game Thumbnail"
@@ -431,7 +430,6 @@ function CreateImageQuiz() {
                         over time.
                       </div>
                       <div className="bg-white rounded-xl border-2 border-black shadow-inner p-4">
-                        {/* [FIXED] Removed className prop */}
                         <Dropzone
                           label={
                             q.questionImages ? "Change Image" : "Upload Image"
@@ -463,8 +461,7 @@ function CreateImageQuiz() {
                     <div>
                       <Label className="at-label">
                         <span>
-                          Category / Hint{" "}
-                          <span className="text-red-500">*</span>
+                          Question <span className="text-red-500">*</span>
                         </span>
                       </Label>
                       <Textarea

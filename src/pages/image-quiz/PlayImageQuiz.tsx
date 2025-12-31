@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
 import { Typography } from "@/components/ui/typography";
 import { motion } from "framer-motion";
@@ -53,13 +53,31 @@ interface ImageQuizGameData {
   theme?: "adventure" | "family100" | "ocean";
 }
 
+interface ThemeStyle {
+  bgClass: string;
+  tileClass: string;
+  font: string;
+  panelClass: string;
+  modalClass: string;
+  titleText: string;
+  buttonPrimary: string;
+  buttonSecondary: string;
+  textHighlight: string;
+  buzzerClass: string;
+  optionButton: string;
+  optionLetter: string;
+  css: React.ReactNode;
+  modalInstructionText?: string;
+  answerOptionText?: string;
+}
+
 // Grid Configuration
 const GRID_COLS = 16;
 const GRID_ROWS = 8;
 const TOTAL_BLOCKS = GRID_COLS * GRID_ROWS;
 
 // --- THEME CONFIGURATION ---
-const THEME_STYLES = {
+const THEME_STYLES: Record<string, ThemeStyle> = {
   family100: {
     bgClass: "f100-bg",
     tileClass: "f100-tile",
@@ -72,6 +90,8 @@ const THEME_STYLES = {
     buttonSecondary: "f100-btn-secondary",
     textHighlight: "text-yellow-400",
     buzzerClass: "f100-buzzer",
+    modalInstructionText: "text-white",
+    answerOptionText: "text-white group-hover:text-yellow-400",
     optionButton:
       "bg-blue-900/80 border-2 border-blue-400 hover:border-yellow-400 hover:bg-blue-800 rounded-xl shadow-md transition-all",
     optionLetter:
@@ -108,7 +128,7 @@ const THEME_STYLES = {
           border: 1px solid #3b82f6;
         }
 
-        .f100-btn-primary { background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); border: 3px solid #fef3c7; color: #451a03; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 6px 0 #92400e; transition: all 0.1s; }
+        .f100-btn-primary { background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); border: 3px solid #fef3c7; color: #451a03; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 6px 0 #92400e; transition: all 0.1s; } 
         .f100-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #92400e; }
         .f100-btn-secondary { background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); border: 3px solid #bfdbfe; color: white; font-weight: 700; }
         .f100-buzzer { background: radial-gradient(circle at 30% 30%, #ef4444 0%, #991b1b 100%); border: 4px solid #fca5a5; box-shadow: 0 10px 0 #7f1d1d, 0 0 50px rgba(220, 38, 38, 0.6); }
@@ -257,92 +277,115 @@ const THEME_STYLES = {
       `}</style>
     ),
   },
-  ocean: {
-    bgClass: "ocean-bg",
-    tileClass: "bg-white/60 backdrop-blur-[2px] border border-white/40",
-    font: "font-ocean",
-    panelClass: "ocean-panel",
+  cyberpunk: {
+    bgClass: "cyber-bg",
+    tileClass: "cyber-tile",
+    font: "font-cyber",
+    panelClass: "cyber-panel",
     modalClass:
-      "bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl",
-    titleText: "text-[#0c4a6e] font-black tracking-wide drop-shadow-sm",
-    buttonPrimary: "ocean-btn-primary",
-    buttonSecondary: "ocean-btn-secondary",
-    textHighlight: "text-[#0284c7]",
-    buzzerClass: "ocean-buzzer",
+      "bg-black/90 border-2 border-[#00f2ff] shadow-[0_0_30px_rgba(0,242,255,0.3)] rounded-lg",
+    titleText:
+      "text-[#00f2ff] font-black tracking-widest uppercase drop-shadow-[0_0_8px_rgba(0,242,255,0.8)]",
+    buttonPrimary: "cyber-btn-primary",
+    buttonSecondary: "cyber-btn-secondary",
+    textHighlight: "text-[#ff00ff]",
+    buzzerClass: "cyber-buzzer",
+    modalInstructionText: "text-white",
+    answerOptionText: "text-white group-hover:text-[#ff00ff] font-digital",
     optionButton:
-      "bg-white/80 border-2 border-white/50 hover:bg-[#e0f2fe] hover:border-[#38bdf8] rounded-2xl shadow-lg transition-all duration-300 hover:scale-[1.01] hover:shadow-xl backdrop-blur-sm",
+      "bg-black/80 border border-[#00f2ff]/30 hover:border-[#00f2ff] hover:bg-[#00f2ff]/10 rounded-none transition-all duration-300 group relative overflow-hidden",
     optionLetter:
-      "bg-[#38bdf8] text-white font-bold rounded-xl shadow-md group-hover:bg-[#0284c7] transition-colors",
+      "bg-[#00f2ff] text-black font-bold rounded-none group-hover:bg-[#ff00ff] group-hover:text-white transition-colors",
     css: (
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Quicksand:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
         
-        .font-ocean { font-family: 'Baloo 2', cursive; }
-        .font-digital { font-family: 'Quicksand', sans-serif; font-weight: 700; }
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+        .font-digital { font-family: 'JetBrains+Mono', monospace; }
         
-        /* Animasi Background Gelombang */
-        @keyframes wave {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+        .cyber-bg {
+          background-color: #050505;
+          background-image: 
+            linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
+          background-size: 30px 30px;
+          color: #00f2ff;
         }
 
-        .ocean-bg {
-          background: linear-gradient(-45deg, #0ea5e9, #22d3ee, #67e8f9, #e0f2fe);
-          background-size: 400% 400%;
-          animation: wave 15s ease infinite;
-          color: #0f172a;
+        .cyber-panel {
+          background: rgba(0, 0, 0, 0.85);
+          border: 2px solid #00f2ff;
+          box-shadow: 0 0 15px rgba(0, 242, 255, 0.2), inset 0 0 10px rgba(0, 242, 255, 0.1);
         }
 
-        /* Glassmorphism Panel */
-        .ocean-panel {
-          background: rgba(255, 255, 255, 0.65);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.8);
-          border-radius: 1.5rem;
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        .cyber-tile {
+          background: #000;
+          border: 1px solid #00f2ff;
+          box-shadow: inset 0 0 5px rgba(0, 242, 255, 0.5);
+          position: relative;
+          overflow: hidden;
+        }
+        .cyber-tile::after {
+          content: "";
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0, 242, 255, 0.05) 1px, rgba(0, 242, 255, 0.05) 2px);
         }
 
-        .ocean-btn-primary {
-          background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-          color: white;
-          border: none;
-          border-radius: 1rem;
-          font-weight: 800;
-          box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
-          transition: all 0.3s ease;
+        .cyber-btn-primary {
+          background: transparent;
+          color: #00f2ff;
+          border: 2px solid #00f2ff;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+          position: relative;
+          transition: all 0.2s;
+          clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
         }
-        .ocean-btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6);
-          background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-        }
-
-        .ocean-btn-secondary {
-          background: white;
-          color: #0284c7;
-          border: 2px solid #e0f2fe;
-          border-radius: 1rem;
-          font-weight: 700;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .ocean-btn-secondary:hover {
-          background: #f0f9ff;
-          border-color: #bae6fd;
+        .cyber-btn-primary:hover {
+          background: #00f2ff;
+          color: black;
+          box-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
+          transform: translate(-2px, -2px);
         }
 
-        .ocean-buzzer {
-          background: radial-gradient(circle at 30% 30%, #f43f5e 0%, #e11d48 100%);
-          border: 4px solid white;
-          box-shadow: 
-            0 10px 20px rgba(225, 29, 72, 0.4),
-            0 0 0 8px rgba(255, 255, 255, 0.3); /* Ring luar transparan */
-          border-radius: 50%;
-          transition: transform 0.1s;
+        .cyber-btn-secondary {
+          background: transparent;
+          color: #ff00ff;
+          border: 1px solid #ff00ff;
+          clip-path: polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%);
         }
-        .ocean-buzzer:active {
+        .cyber-btn-secondary:hover {
+          background: rgba(255, 0, 255, 0.1);
+          box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+        }
+
+        .cyber-buzzer {
+          background: #000;
+          border: 4px solid #ff00ff;
+          box-shadow: 0 0 20px rgba(255, 0, 255, 0.5), inset 0 0 15px rgba(255, 0, 255, 0.3);
+          color: #ff00ff;
+        }
+        .cyber-buzzer:active {
           transform: scale(0.95);
+          box-shadow: 0 0 40px rgba(255, 0, 255, 0.8);
+          background: #ff00ff;
+          color: white;
+        }
+
+        @keyframes scanline {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
+        }
+        .cyber-bg::before {
+          content: "";
+          position: fixed;
+          top: 0; left: 0; width: 100%; height: 100%;
+          background: linear-gradient(to bottom, transparent, rgba(0, 242, 255, 0.03), transparent);
+          animation: scanline 8s linear infinite;
+          pointer-events: none;
+          z-index: 100;
         }
       `}</style>
     ),
@@ -431,72 +474,10 @@ function PlayImageQuiz() {
       cleanupTimers();
       stopSound("bgm");
     };
-  }, [fetchedQuizData, fetchingQuiz, fetchError]);
+  }, [fetchedQuizData, fetchingQuiz, fetchError, stopSound]); // Added stopSound
 
-  useEffect(() => {
-    if (startCountdown === null) return;
-
-    if (startCountdown > 0) {
-      playSound("tick");
-      const timer = setTimeout(() => {
-        setStartCountdown((prev) => (prev !== null ? prev - 1 : null));
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (startCountdown === 0) {
-      setStartCountdown(null);
-      startActualGame();
-    }
-  }, [startCountdown]);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
-    if (isPlaying && !isPaused && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          const next = Math.max(0, prev - 1);
-          if (next <= 10 && next > 0) playSound("tick");
-          return next;
-        });
-      }, 1000);
-    } else {
-      stopSound("bgm");
-    }
-    return () => clearInterval(timer);
-  }, [isPlaying, isPaused, timeLeft]);
-
-  useEffect(() => {
-    if (timeLeft <= 0 && isPlaying && !isPaused) {
-      handleTimeUp();
-    }
-  }, [timeLeft, isPlaying, isPaused]);
-
-  const cleanupTimers = () => {
-    if (revealTimerRef.current) clearInterval(revealTimerRef.current);
-    if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-  };
-
-  const resetGrid = () => {
-    console.log("Resetting Grid for next round");
-    const allBlocks = Array.from({ length: TOTAL_BLOCKS }, (_, i) => i);
-    setHiddenBlocks(allBlocks);
-    setScoreParticles([]);
-    setIsPlaying(false);
-    setIsPaused(false);
-    setActiveModal(null);
-    setIsTimeUp(false);
-    cleanupTimers();
-    setTimeLeft(timeLimit);
-    stopSound("bgm");
-  };
-
-  const initiateRoundStart = () => {
-    console.log("Initiating Round Start");
-    if (!quiz || finished) return;
-    setStartCountdown(3);
-    playSound("countdown");
-  };
-
-  const startActualGame = () => {
+  // Wrapped in useCallback
+  const startActualGame = useCallback(() => {
     console.log("Starting Actual Game");
     setIsPlaying(true);
     setIsPaused(false);
@@ -523,9 +504,41 @@ function PlayImageQuiz() {
       },
       (quiz?.tile_config?.reveal_interval || 0.2) * 1000,
     );
-  };
+  }, [quiz, timeLimit, playSound]);
 
-  const handleTimeUp = () => {
+  useEffect(() => {
+    if (startCountdown === null) return;
+
+    if (startCountdown > 0) {
+      playSound("tick");
+      const timer = setTimeout(() => {
+        setStartCountdown((prev) => (prev !== null ? prev - 1 : null));
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (startCountdown === 0) {
+      setStartCountdown(null);
+      startActualGame();
+    }
+  }, [startCountdown, playSound, startActualGame]); // Added dependencies
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval>;
+    if (isPlaying && !isPaused && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          const next = Math.max(0, prev - 1);
+          if (next <= 10 && next > 0) playSound("tick");
+          return next;
+        });
+      }, 1000);
+    } else {
+      stopSound("bgm");
+    }
+    return () => clearInterval(timer);
+  }, [isPlaying, isPaused, timeLeft, playSound, stopSound]); // Added dependencies
+
+  // Wrapped in useCallback
+  const handleTimeUp = useCallback(() => {
     console.log("Time Up!");
     setIsTimeUp(true);
     cleanupTimers();
@@ -534,6 +547,38 @@ function PlayImageQuiz() {
     setActiveModal("answer");
     playSound("timeUp");
     stopSound("bgm");
+  }, [playSound, stopSound]);
+
+  useEffect(() => {
+    if (timeLeft <= 0 && isPlaying && !isPaused) {
+      handleTimeUp();
+    }
+  }, [timeLeft, isPlaying, isPaused, handleTimeUp]); // Added dependencies
+
+  const cleanupTimers = () => {
+    if (revealTimerRef.current) clearInterval(revealTimerRef.current);
+    if (gameTimerRef.current) clearInterval(gameTimerRef.current);
+  };
+
+  const resetGrid = () => {
+    console.log("Resetting Grid for next round");
+    const allBlocks = Array.from({ length: TOTAL_BLOCKS }, (_, i) => i);
+    setHiddenBlocks(allBlocks);
+    setScoreParticles([]);
+    setIsPlaying(false);
+    setIsPaused(false);
+    setActiveModal(null);
+    setIsTimeUp(false);
+    cleanupTimers();
+    setTimeLeft(timeLimit);
+    stopSound("bgm");
+  };
+
+  const initiateRoundStart = () => {
+    console.log("Initiating Round Start");
+    if (!quiz || finished) return;
+    setStartCountdown(3);
+    playSound("countdown");
   };
 
   const handleOpenPauseMenu = () => {
@@ -612,10 +657,10 @@ function PlayImageQuiz() {
         className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none transition-all duration-300"
         style={{
           opacity: opacity,
-          transform: opacity === 1 ? "translateY(-20px)" : "translateY(0)",
+          transform: opacity === 1 ? "translateY(-40px)" : "translateY(0)",
         }}
       >
-        <span className="text-yellow-400 font-black text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-digital">
+        <span className="text-yellow-400 font-black text-6xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] font-digital">
           +1
         </span>
       </div>
@@ -770,7 +815,7 @@ function PlayImageQuiz() {
   if (error) {
     return (
       <div className="w-full h-screen flex flex-col justify-center items-center gap-4 bg-[#020617] text-white">
-        <Typography variant="h4" className="text-red-500 font-f100">
+        <Typography variant="h4" className="text-red-500 font-cyber">
           {error}
         </Typography>
         <Button
@@ -1110,7 +1155,7 @@ function PlayImageQuiz() {
               className={`relative w-24 h-24 md:w-28 md:h-28 rounded-full transition-all duration-150 ease-out flex items-center justify-center ${activeStyle.buzzerClass} ${!isPlaying || isPaused ? "opacity-50 cursor-not-allowed grayscale" : "cursor-pointer hover:scale-105 active:scale-95"}`}
               onClick={handleOpenAnswerModal}
             >
-              <span className="font-f100 font-black text-white text-xl md:text-2xl tracking-widest drop-shadow-md z-10 pointer-events-none">
+              <span className="font-cyber font-black text-white text-xl md:text-2xl tracking-widest drop-shadow-md z-10 pointer-events-none">
                 BUZZ
               </span>
               <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-10 bg-gradient-to-b from-white/40 to-transparent rounded-full blur-[1px] pointer-events-none" />
@@ -1148,7 +1193,7 @@ function PlayImageQuiz() {
                 ? "Game Paused"
                 : isTimeUp
                   ? "Time's Up!"
-                  : "Who is it?"}
+                  : currentQ.question_text || "Who is it?"}
             </DialogTitle>
           </div>
 
@@ -1200,7 +1245,9 @@ function PlayImageQuiz() {
 
             {activeModal === "answer" && (
               <div className="relative z-10">
-                <p className="text-center mb-6 text-lg font-bold opacity-80">
+                <p
+                  className={`text-center mb-6 text-lg font-bold opacity-80 ${activeStyle.modalInstructionText || ""}`}
+                >
                   {isTimeUp
                     ? "You're out of time! Select an answer."
                     : "Select the correct answer from the board below!"}
@@ -1218,7 +1265,7 @@ function PlayImageQuiz() {
                         {String.fromCharCode(65 + idx)}
                       </div>
                       <span
-                        className={`font-bold text-xl transition-colors ${activeStyle.titleText ? "" : "text-white group-hover:text-yellow-400"}`}
+                        className={`font-bold text-xl transition-colors ${activeStyle.answerOptionText || (activeStyle.titleText ? "" : "text-white group-hover:text-yellow-400")}`}
                       >
                         {ans.answer_text}
                       </span>
