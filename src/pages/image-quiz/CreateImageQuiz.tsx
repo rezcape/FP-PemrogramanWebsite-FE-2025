@@ -53,7 +53,7 @@ const THEME_OPTIONS = [
     colors: ["#1e3a8a", "#fbbf24", "#020617"],
   },
   {
-    id: "cyberpunk",
+    id: "ocean",
     name: "Cyberpunk Hacker",
     description: "Neon lights and terminal aesthetics",
     colors: ["#00f2ff", "#ff00ff", "#050505"],

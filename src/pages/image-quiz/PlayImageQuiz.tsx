@@ -277,7 +277,7 @@ const THEME_STYLES: Record<string, ThemeStyle> = {
       `}</style>
     ),
   },
-  cyberpunk: {
+  ocean: {
     bgClass: "cyber-bg",
     tileClass: "cyber-tile",
     font: "font-cyber",

@@ -31,7 +31,7 @@ export const imageQuizSchema = z.object({
     isPublishImmediately: z.boolean(),
     isQuestionRandomized: z.boolean(),
     isAnswerRandomized: z.boolean(),
-    theme: z.enum(["adventure", "family100", "cyberpunk"]).default("family100"),
+    theme: z.enum(["adventure", "family100", "ocean"]).default("family100"),
     // scorePerQuestion dihapus karena backend yang mengatur
   }),
 });
